@@ -1,0 +1,32 @@
+@use '@/shared/styles/mixins' as *;
+
+.panel {
+	display: flex;
+	flex-direction: column;
+	gap: var(--gap-3);
+	width: 19rem;
+}
+
+.group {
+	display: flex;
+	flex-direction: column;
+	gap: 0.4rem;
+}
+
+.label {
+	@include caption;
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+}
+
+.size {
+	@include mono;
+	color: var(--text);
+}
+
+.footer {
+	display: flex;
+	justify-content: space-between;
+	gap: var(--gap-2);
+}

@@ -6,7 +6,9 @@ import fsd from '@feature-sliced/steiger-plugin'
 export default defineConfig([
 	...fsd.configs.recommended,
 	{
-		ignores: ['**/*.d.ts', 'src/shared/api/schema.ts']
+		// scss-партиалы — не слайс и публичного API им не нужно;
+		// сгенерированную схему API проверять тоже незачем.
+		ignores: ['**/*.d.ts', 'src/shared/api/schema.ts', 'src/shared/styles/**', 'src/shared/locales/**']
 	},
 	{
 		files: ['src/app/**'],

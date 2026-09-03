@@ -1,0 +1,33 @@
+.page {
+	display: flex;
+	flex-direction: column;
+	gap: var(--gap-2);
+}
+
+.columns {
+	display: grid;
+	gap: var(--gap-2);
+
+	@media (min-width: 1100px) {
+		grid-template-columns: 1fr 1fr;
+	}
+}
+
+.notes {
+	display: grid;
+	gap: var(--gap-2);
+	align-items: start;
+
+	@media (min-width: 1024px) {
+		grid-template-columns: 15rem 1fr;
+	}
+}
+
+.target {
+	max-width: 28rem;
+}
+
+.hint {
+	color: var(--text-dim);
+	font-size: 0.82rem;
+}

@@ -1,0 +1,32 @@
+@use '@/shared/styles/mixins' as *;
+
+.head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 0 var(--gap-2);
+}
+
+.model {
+	@include mono;
+	font-size: 0.8rem;
+	color: var(--text-dim);
+}
+
+.badge {
+	font-size: 0.8rem;
+	color: var(--text-dim);
+}
+
+.about {
+	margin: 0;
+	color: var(--text-dim);
+	font-size: 0.9rem;
+}
+
+.usage {
+	@include mono;
+	margin: 0;
+	font-size: 0.8rem;
+	color: var(--text-dim);
+}

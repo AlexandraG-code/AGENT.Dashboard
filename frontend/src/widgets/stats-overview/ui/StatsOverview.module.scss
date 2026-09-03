@@ -1,0 +1,48 @@
+.page {
+	display: flex;
+	flex-direction: column;
+	gap: var(--gap-2);
+}
+
+.reportHead {
+	display: flex;
+	justify-content: flex-end;
+	align-items: flex-end;
+	gap: var(--gap-2);
+}
+
+// Шапка нужна печатной версии: на бумаге не видно ни вкладок, ни шапки приложения.
+.printOnly {
+	display: none;
+
+	@media print {
+		display: block;
+		margin-right: auto;
+
+		h2 {
+			margin: 0;
+			font-size: 1.2rem;
+		}
+
+		p {
+			margin: 0.2rem 0 0;
+			color: #475569;
+			font-size: 0.85rem;
+		}
+	}
+}
+
+.tiles {
+	display: grid;
+	gap: var(--gap-2);
+	grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.columns {
+	display: grid;
+	gap: var(--gap-2);
+
+	@media (min-width: 1180px) {
+		grid-template-columns: 1fr 1fr;
+	}
+}

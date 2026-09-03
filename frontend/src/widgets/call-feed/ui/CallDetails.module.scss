@@ -1,0 +1,39 @@
+@use '@/shared/styles/mixins' as *;
+
+.meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.3rem 1.2rem;
+	@include mono;
+	font-size: 0.82rem;
+	color: var(--text-dim);
+}
+
+.section {
+	margin-top: var(--gap-3);
+}
+
+.caption {
+	@include caption;
+	margin-bottom: 0.3rem;
+}
+
+.block {
+	@include mono;
+	max-height: 24rem;
+	overflow: auto;
+	margin: 0 0 var(--gap-2);
+	padding: var(--gap-2);
+	border: 1px solid var(--line);
+	border-radius: var(--radius-sm);
+	background: var(--surface-2);
+	font-size: 0.78rem;
+	line-height: 1.55;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+.role {
+	@include caption;
+	margin-bottom: 0.2rem;
+}

@@ -1,60 +1,62 @@
 'use client'
 
-import { SeriesDot } from '@/shared/ui/SeriesDot'
+import { useTranslation } from 'react-i18next'
+
 import type { ProjectStat } from '@/shared/api'
 import { money, percent, tokens } from '@/shared/lib/format'
+import { MetricBar, SeriesDot } from '@/shared/ui'
 
-interface ProjectBreakdownProps {
+import { peakOf, projectRows } from '../lib/breakdown'
+import styles from './Breakdown.module.scss'
+
+interface IProjectBreakdownProps {
 	projects: Record<string, ProjectStat>
 	colors: Record<string, string>
 	titles: Record<string, string>
 }
 
 /**
- * Расход по проектам, внутри проекта — доли моделей.
- * Сегменты разделены зазором в 2px по фону: без него соседние доли слипаются
- * в одно пятно. Цвет модели тот же, что и в разрезе по моделям.
+ * Расход по проектам, внутри проекта — доли моделей тем же цветом, что и в разрезе
+ * по моделям: цвет закреплён за моделью, а не за её местом в рейтинге.
+ *
+ * @param projects — разрез статистики по проектам
+ * @param colors — цвет серии для каждой модели
+ * @param titles — человеческие названия пространств: в журнале лежат идентификаторы
  */
-export function ProjectBreakdown({ projects, colors, titles }: ProjectBreakdownProps) {
-	const rows = Object.entries(projects)
+export function ProjectBreakdown({ projects, colors, titles }: IProjectBreakdownProps) {
+	const { t } = useTranslation()
+	const { rows, totalCost } = projectRows(projects)
+
 	if (rows.length === 0) {
-		return <p className="text-sm text-slate-400">Вызовов ещё не было.</p>
+		return <p>{t('common.empty')}</p>
 	}
-	const peak = Math.max(...rows.map(([, s]) => s.cost), 0.000001)
-	const totalCost = rows.reduce((sum, [, s]) => sum + s.cost, 0)
+
+	const peak = peakOf(rows, ([, stat]) => stat.cost)
+	const nameOf = (id: string) => titles[id] ?? (id === '—' ? t('overview.noSpace') : id)
 
 	return (
-		<ul className="flex flex-col gap-4">
+		<ul className={styles.rows}>
 			{rows.map(([id, stat]) => (
-				<li key={id}>
-					<div className="flex items-baseline justify-between gap-3 text-sm">
-						<span className="truncate text-slate-100">
-							{titles[id] ?? (id === '—' ? 'без пространства' : id)}
-						</span>
-						<span className="font-mono text-xs text-slate-400 tabular-nums">
-							{money(stat.cost)} · {percent(stat.cost, totalCost)} · {stat.calls} выз.
+				<li key={id} className={styles.row}>
+					<div className={styles.head}>
+						<span className={styles.name}>{nameOf(id)}</span>
+						<span className={styles.numbers}>
+							{money(stat.cost)} · {percent(stat.cost, totalCost)} · {stat.calls}
 						</span>
 					</div>
-					<div
-						className="mt-1.5 flex h-2.5 gap-0.5"
-						style={{ width: `${Math.max(4, (stat.cost / peak) * 100)}%` }}
-					>
+					<MetricBar
+						widthPercent={(stat.cost / peak) * 100}
+						segments={Object.entries(stat.by_model).map(([model, slot]) => ({
+							key: model,
+							value: slot.tokens_in + slot.tokens_out,
+							color: colors[model] ?? 'var(--text-mute)',
+							title: `${model}: ${money(slot.cost)}, ${tokens(slot.tokens_in)}→${tokens(slot.tokens_out)}`
+						}))}
+					/>
+					<div className={styles.legend}>
 						{Object.entries(stat.by_model).map(([model, slot]) => (
-							<div
-								key={model}
-								className="first:rounded-l-sm last:rounded-r-sm"
-								style={{
-									backgroundColor: colors[model] ?? '#64748b',
-									flexGrow: slot.tokens_in + slot.tokens_out || 1
-								}}
-								title={`${model}: ${money(slot.cost)}, ${tokens(slot.tokens_in)}→${tokens(slot.tokens_out)} токенов`}
-							/>
-						))}
-					</div>
-					<div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 font-mono text-xs text-slate-400 tabular-nums">
-						{Object.entries(stat.by_model).map(([model, slot]) => (
-							<span key={model} className="flex items-center gap-1.5">
-								<SeriesDot color={colors[model] ?? '#64748b'} className="h-2 w-2" />
+							<span key={model} className={styles.legendItem}>
+								<SeriesDot color={colors[model] ?? 'var(--text-mute)'} />
 								{model}: {tokens(slot.tokens_in)}→{tokens(slot.tokens_out)}
 							</span>
 						))}

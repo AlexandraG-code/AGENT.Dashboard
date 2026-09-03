@@ -12,16 +12,20 @@
     "generateApi": "openapi-typescript http://127.0.0.1:8770/openapi.json -o src/shared/api/schema.ts"
   },
   "dependencies": {
+    "@ant-design/icons": "^6.3.4",
+    "@ant-design/nextjs-registry": "^1.3.0",
+    "antd": "^6.6.2",
     "clsx": "^2.1.1",
+    "i18next": "^26.4.1",
     "next": "16.3.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "tailwind-merge": "^3.6.0",
+    "react-i18next": "^17.0.13",
+    "sass": "^1.103.1",
     "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@feature-sliced/steiger-plugin": "^0.7.0",
-    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -29,9 +33,7 @@
     "eslint-config-next": "16.3.4",
     "openapi-typescript": "^7.13.0",
     "prettier": "^3.9.6",
-    "prettier-plugin-tailwindcss": "^0.8.1",
     "steiger": "^0.6.0",
-    "tailwindcss": "^4",
     "typescript": "^5"
   },
   "packageManager": "yarn@1.22.22"

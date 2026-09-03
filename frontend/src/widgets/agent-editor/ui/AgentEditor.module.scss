@@ -1,0 +1,20 @@
+.layout {
+	display: grid;
+	gap: var(--gap-2);
+	align-items: start;
+
+	@media (min-width: 1024px) {
+		grid-template-columns: 16rem 1fr;
+	}
+}
+
+.fields {
+	display: grid;
+	gap: 0 var(--gap-2);
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.hint {
+	color: var(--text-dim);
+	font-size: 0.82rem;
+}

@@ -1,0 +1,33 @@
+@use '@/shared/styles/mixins' as *;
+
+.panel {
+	@include glass;
+	padding: var(--gap-3);
+	display: flex;
+	flex-direction: column;
+	gap: var(--gap-2);
+}
+
+.head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: var(--gap-1) var(--gap-2);
+}
+
+.title {
+	margin: 0;
+	font-size: 1rem;
+	font-weight: 600;
+	color: var(--text);
+}
+
+.subtitle {
+	margin: 0;
+	color: var(--text-dim);
+	font-size: 0.85rem;
+}
+
+.tools {
+	margin-left: auto;
+}

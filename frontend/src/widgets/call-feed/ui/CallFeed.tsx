@@ -1,115 +1,89 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { fleetApi, type EventOut } from '@/shared/api'
-import { money, tokens, timeOnly } from '@/shared/lib/format'
-import { cn } from '@/shared/lib/cn'
+import { Tag } from 'antd'
+import clsx from 'clsx'
+import { useTranslation } from 'react-i18next'
 
-function EventRow({ event, onSelect }: { event: EventOut; onSelect: (id: string) => void }) {
-	const isCall = event.event === 'call'
-	const isError = event.event === 'error'
-	const isClickable = isCall && event.id != null
+import type { EventOut } from '@/shared/api'
+import { money, timeOnly, tokens } from '@/shared/lib/format'
 
-	const handleClick = () => {
-		if (isCall && event.id != null) onSelect(event.id)
-	}
+import { useCallFeed } from '../model/useCallFeed'
+import styles from './CallFeed.module.scss'
 
-	const content = (
-		<div className="grid grid-cols-[auto_auto_1fr_auto_auto_auto] items-center gap-3 px-3 py-2 text-sm">
-			<span className="font-mono text-slate-400 tabular-nums">{timeOnly(event.ts)}</span>
-			{isError ? (
-				<span className="rounded bg-red-500/10 px-2 py-0.5 text-xs font-medium text-red-400">ошибка</span>
-			) : isCall ? (
-				<span className="rounded bg-slate-800 px-2 py-0.5 text-xs font-medium text-slate-300">
-					{event.role ?? '—'}
-				</span>
-			) : (
-				<span className="rounded bg-slate-800 px-2 py-0.5 text-xs font-medium text-slate-300">
-					{event.event}
-				</span>
-			)}
-			<div className="truncate text-slate-400">
+interface ICallFeedProps {
+	onSelect: (callId: string) => void
+}
+
+/**
+ * Живая лента вызовов флота: время, роль, модель, задача, токены и цена.
+ * Строка вызова кликабельна и открывает разбор — там видно, что именно ушло
+ * в модель и что она ответила.
+ *
+ * @param onSelect — открыть разбор вызова по его идентификатору
+ */
+export function CallFeed({ onSelect }: ICallFeedProps) {
+	const { t } = useTranslation()
+	const { events, error } = useCallFeed()
+
+	const renderRow = (event: EventOut, index: number) => {
+		const isCall = event.event === 'call'
+		const isError = event.event === 'error'
+		const clickable = isCall && Boolean(event.id)
+		const free = (event.cost ?? 0) === 0
+
+		const content = (
+			<>
+				<span className={styles.dim}>{timeOnly(event.ts)}</span>
 				{isError ? (
-					<span className="text-red-400">{event.error ?? 'Ошибка без описания'}</span>
-				) : isCall ? (
-					<span>{event.model ?? '—'}</span>
+					<Tag color="error">{t('feed.error')}</Tag>
 				) : (
-					<span>{event.name ?? event.topic ?? event.query ?? event.role ?? '—'}</span>
+					<Tag>{isCall ? (event.role ?? '—') : event.event}</Tag>
 				)}
-			</div>
-			<div className="truncate text-slate-400">{isCall ? (event.task ?? '—') : ''}</div>
-			<div className="font-mono text-slate-400 tabular-nums">
-				{isCall ? `${tokens(event.tokens_in ?? 0)}→${tokens(event.tokens_out ?? 0)}` : ''}
-			</div>
-			<div
-				className={cn(
-					'font-mono tabular-nums',
-					isCall && (event.cost ?? 0) === 0 ? 'text-green-400' : 'text-slate-400'
-				)}
-			>
-				{isCall ? ((event.cost ?? 0) === 0 ? '0' : money(event.cost ?? 0)) : ''}
-			</div>
-		</div>
-	)
+				<span className={styles.dim}>{event.model ?? event.project ?? ''}</span>
+				<span className={clsx(styles.task, isError && styles.error)}>
+					{isError
+						? (event.error ?? '')
+						: isCall
+							? (event.task ?? '')
+							: (event.name ?? event.topic ?? event.query ?? event.role ?? '')}
+				</span>
+				<span className={clsx(styles.right, styles.dim)}>
+					{isCall ? `${tokens(event.tokens_in ?? 0)}→${tokens(event.tokens_out ?? 0)}` : ''}
+				</span>
+				<span className={clsx(styles.right, free && styles.free)}>
+					{isCall ? (free ? '0' : money(event.cost ?? 0)) : ''}
+				</span>
+			</>
+		)
 
-	if (isClickable) {
-		return (
+		return clickable ? (
 			<button
+				key={`${event.ts}-${index}`}
 				type="button"
-				onClick={handleClick}
-				className="w-full cursor-pointer rounded-lg text-left transition-colors hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:outline-none"
+				className={clsx(styles.row, styles.clickable)}
+				onClick={() => onSelect(event.id as string)}
 			>
 				{content}
 			</button>
+		) : (
+			<div key={`${event.ts}-${index}`} className={styles.row}>
+				{content}
+			</div>
 		)
 	}
 
-	return <div className="rounded-lg">{content}</div>
-}
-
-export function CallFeed({ onSelect }: { onSelect: (callId: string) => void }) {
-	const [events, setEvents] = useState<EventOut[]>([])
-	const sinceRef = useRef(0)
-	const [lastError, setLastError] = useState<string | null>(null)
-
-	useEffect(() => {
-		// Флаг «запрос в полёте»: медленный ответ не должен наложиться на следующий тик
-		// и обработать один и тот же ts дважды.
-		let inFlight = false
-		const fetchEvents = async () => {
-			if (inFlight) return
-			inFlight = true
-			try {
-				const { events: fresh } = await fleetApi.events(sinceRef.current, 120)
-				setLastError(null)
-				if (fresh.length > 0) {
-					const sorted = [...fresh].sort((a, b) => b.ts - a.ts)
-					const maxTs = sorted[0]?.ts ?? sinceRef.current
-					sinceRef.current = maxTs + 0.000001
-					setEvents((prev) => [...sorted, ...prev].slice(0, 300))
-				}
-			} catch (err) {
-				setLastError(err instanceof Error ? err.message : 'Ошибка получения событий')
-			} finally {
-				inFlight = false
-			}
-		}
-
-		void fetchEvents()
-		const interval = setInterval(() => {
-			void fetchEvents()
-		}, 2000)
-		return () => clearInterval(interval)
-	}, [])
-
 	return (
-		<div className="rounded-2xl bg-slate-900/60 p-4 ring-1 ring-white/10 backdrop-blur-xl">
-			{lastError && <div className="mb-2 text-sm text-slate-400">{lastError}</div>}
-			<div className="space-y-1">
-				{events.map((event, index) => (
-					<EventRow key={`${event.ts}-${index}`} event={event} onSelect={onSelect} />
-				))}
+		<div className={styles.feed}>
+			<div className={clsx(styles.row, styles.head)}>
+				<span>{t('feed.time')}</span>
+				<span>{t('common.role')}</span>
+				<span>{t('common.model')}</span>
+				<span>{t('feed.task')}</span>
+				<span className={styles.right}>{t('common.tokens')}</span>
+				<span className={styles.right}>$</span>
 			</div>
+			{error && <div className={clsx(styles.row, styles.dim)}>{error}</div>}
+			{events.map(renderRow)}
 		</div>
 	)
 }

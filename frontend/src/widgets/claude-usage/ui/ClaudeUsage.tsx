@@ -1,78 +1,85 @@
 'use client'
 
+import { useTranslation } from 'react-i18next'
+
 import type { ClaudeStat } from '@/shared/api'
 import { tokens } from '@/shared/lib/format'
-import { GlassCard } from '@/shared/ui/GlassCard'
+import { KeyValues, MetricBar, Panel } from '@/shared/ui'
 
-interface ClaudeUsageProps {
+import styles from './ClaudeUsage.module.scss'
+
+interface IClaudeUsageProps {
 	claude: ClaudeStat
 }
 
 /**
- * Расход самого Claude Code — того, кто раздаёт задачи флоту.
+ * Расход самого Claude Code — того, кто раздаёт задачи флоту. Цифры берутся из
+ * журналов его сессий, а не из нашего клиента, поэтому стоимость не показывается:
+ * работа идёт по подписке, цены за токен нет, и выдумывать её в отчёте нельзя.
  *
- * Цифры берутся из журналов сессий Claude Code, а не из нашего клиента, поэтому
- * стоимость здесь не показывается: работа идёт по подписке, цены за токен нет,
- * и выдумывать её в отчёте о расходах нельзя.
+ * @param claude — сводка по сессиям Claude Code за окно статистики
  */
-export function ClaudeUsage({ claude }: ClaudeUsageProps) {
+export function ClaudeUsage({ claude }: IClaudeUsageProps) {
+	const { t } = useTranslation()
+
 	if (!claude.available) {
 		return null
 	}
 
-	const projects = Object.entries(claude.projects)
+	const folders = Object.entries(claude.projects)
 		.sort((a, b) => b[1].tokens_in + b[1].tokens_out - (a[1].tokens_in + a[1].tokens_out))
 		.slice(0, 8)
-	const peak = Math.max(...projects.map(([, s]) => s.tokens_in + s.tokens_out), 1)
+	const peak = Math.max(...folders.map(([, slot]) => slot.tokens_in + slot.tokens_out), 1)
 
 	return (
-		<GlassCard
-			title="Claude Code — главный архитектор"
-			subtitle="по подписке, поэтому в деньгах не считается: здесь только объём работы"
-		>
-			<dl className="mt-3 grid grid-cols-2 gap-3 font-mono text-sm tabular-nums sm:grid-cols-5">
-				<div>
-					<dt className="font-sans text-xs tracking-wide text-slate-400 uppercase">ответов</dt>
-					<dd>{claude.total.calls}</dd>
-				</div>
-				<div>
-					<dt className="font-sans text-xs tracking-wide text-slate-400 uppercase">вход</dt>
-					<dd>{tokens(claude.total.tokens_in)}</dd>
-				</div>
-				<div>
-					<dt className="font-sans text-xs tracking-wide text-slate-400 uppercase">из кэша</dt>
-					<dd className="text-emerald-400">{tokens(claude.total.tokens_cached)}</dd>
-				</div>
-				<div>
-					<dt className="font-sans text-xs tracking-wide text-slate-400 uppercase">выход</dt>
-					<dd>{tokens(claude.total.tokens_out)}</dd>
-				</div>
-				<div>
-					<dt className="font-sans text-xs tracking-wide text-slate-400 uppercase">размышления</dt>
-					<dd>{tokens(claude.total.tokens_reasoning)}</dd>
-				</div>
-			</dl>
+		<Panel title={t('claude.title')} subtitle={t('claude.subtitle')}>
+			<KeyValues
+				minWidth={120}
+				items={[
+					{ key: 'calls', label: t('claude.answers'), value: String(claude.total.calls) },
+					{ key: 'in', label: t('common.input'), value: tokens(claude.total.tokens_in) },
+					{
+						key: 'cached',
+						label: t('common.cached'),
+						value: tokens(claude.total.tokens_cached),
+						tone: 'good'
+					},
+					{ key: 'out', label: t('common.output'), value: tokens(claude.total.tokens_out) },
+					{ key: 'think', label: t('common.reasoning'), value: tokens(claude.total.tokens_reasoning) }
+				]}
+			/>
 
-			<p className="mt-4 text-xs tracking-wide text-slate-400 uppercase">по каталогам работы</p>
-			<ul className="mt-2 flex flex-col gap-2">
-				{projects.map(([name, slot]) => {
-					const total = slot.tokens_in + slot.tokens_out
-					return (
-						<li key={name}>
-							<div className="flex items-baseline justify-between gap-3 text-sm">
-								<span className="truncate text-slate-100">{name}</span>
-								<span className="font-mono text-xs text-slate-400 tabular-nums">
-									{tokens(slot.tokens_in)}→{tokens(slot.tokens_out)}
-								</span>
-							</div>
-							<div
-								className="mt-1 h-1.5 rounded-sm bg-violet-600"
-								style={{ width: `${Math.max(2, (total / peak) * 100)}%` }}
-							/>
-						</li>
-					)
-				})}
+			<p className={styles.caption}>{t('claude.byFolder')}</p>
+			<ul className={styles.rows}>
+				{folders.map(([name, slot]) => (
+					<li key={name} className={styles.row}>
+						<div className={styles.head}>
+							<span className={styles.name}>{name}</span>
+							<span className={styles.numbers}>
+								{tokens(slot.tokens_in)}→{tokens(slot.tokens_out)}
+							</span>
+						</div>
+						<MetricBar
+							widthPercent={((slot.tokens_in + slot.tokens_out) / peak) * 100}
+							segments={[
+								{
+									key: 'in',
+									value: slot.tokens_in,
+									color: '#7c3aed',
+									title: `${t('common.input')} ${tokens(slot.tokens_in)}`
+								},
+								{
+									key: 'out',
+									value: slot.tokens_out,
+									color: '#7c3aed',
+									dim: true,
+									title: `${t('common.output')} ${tokens(slot.tokens_out)}`
+								}
+							]}
+						/>
+					</li>
+				))}
 			</ul>
-		</GlassCard>
+		</Panel>
 	)
 }

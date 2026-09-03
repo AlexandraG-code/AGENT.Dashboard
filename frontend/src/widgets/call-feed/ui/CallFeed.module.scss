@@ -1,0 +1,78 @@
+@use '@/shared/styles/mixins' as *;
+
+.feed {
+	@include glass;
+	overflow: hidden;
+	padding: 0;
+}
+
+.row {
+	display: grid;
+	width: 100%;
+	align-items: baseline;
+	gap: var(--gap-2);
+	grid-template-columns: 4.5rem 7rem 9rem 1fr 7rem 4.5rem;
+	padding: 0.45rem 0.8rem;
+	border: 0;
+	border-bottom: 1px solid var(--line);
+	background: transparent;
+	color: var(--text);
+	text-align: left;
+	@include mono;
+	font-size: 0.8rem;
+
+	&:last-child {
+		border-bottom: 0;
+	}
+
+	@media (max-width: 900px) {
+		grid-template-columns: 4.5rem 1fr 4.5rem;
+
+		> :nth-child(3),
+		> :nth-child(5) {
+			display: none;
+		}
+	}
+}
+
+.clickable {
+	cursor: pointer;
+	transition: background 0.18s;
+
+	&:hover {
+		background: var(--surface-3);
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--info);
+		outline-offset: -2px;
+	}
+}
+
+.head {
+	@include caption;
+	background: var(--surface-2);
+}
+
+.dim {
+	color: var(--text-dim);
+}
+
+.task {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--text-dim);
+}
+
+.right {
+	text-align: right;
+}
+
+.free {
+	color: var(--accent);
+}
+
+.error {
+	color: var(--danger);
+}

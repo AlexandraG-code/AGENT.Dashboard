@@ -1,0 +1,35 @@
+@use '@/shared/styles/mixins' as *;
+
+.tile {
+	@include glass(var(--radius-sm));
+	padding: var(--gap-2) var(--gap-3);
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.label {
+	@include caption;
+}
+
+.value {
+	@include mono;
+	font-size: 1.3rem;
+	font-weight: 600;
+	line-height: 1.15;
+}
+
+.hint {
+	color: var(--text-dim);
+	font-size: 0.78rem;
+}
+
+.good {
+	color: var(--accent);
+}
+.warn {
+	color: var(--warn);
+}
+.bad {
+	color: var(--danger);
+}

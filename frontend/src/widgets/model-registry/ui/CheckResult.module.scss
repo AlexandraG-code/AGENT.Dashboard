@@ -1,0 +1,20 @@
+@use '@/shared/styles/mixins' as *;
+
+.result {
+	@include mono;
+	margin: 0;
+	padding: 0.5rem 0.7rem;
+	border-radius: var(--radius-sm);
+	font-size: 0.8rem;
+	overflow-wrap: break-word;
+}
+
+.ok {
+	background: rgb(34 197 94 / 0.12);
+	color: var(--accent);
+}
+
+.fail {
+	background: rgb(248 113 113 / 0.12);
+	color: var(--danger);
+}

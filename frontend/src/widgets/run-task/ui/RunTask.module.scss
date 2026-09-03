@@ -1,0 +1,31 @@
+@use '@/shared/styles/mixins' as *;
+
+.field {
+	width: 14rem;
+}
+
+.wide {
+	width: 20rem;
+}
+
+.meta {
+	@include mono;
+	padding-bottom: 0.35rem;
+	font-size: 0.8rem;
+	color: var(--text-dim);
+}
+
+.output {
+	@include mono;
+	max-height: 60vh;
+	overflow: auto;
+	margin: var(--gap-2) 0 0;
+	padding: var(--gap-2);
+	border: 1px solid var(--line);
+	border-radius: var(--radius-sm);
+	background: var(--surface-2);
+	font-size: 0.8rem;
+	line-height: 1.6;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}

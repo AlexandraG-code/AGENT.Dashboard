@@ -1,0 +1,54 @@
+@use '@/shared/styles/mixins' as *;
+
+.rows {
+	display: flex;
+	flex-direction: column;
+	gap: var(--gap-2);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.row {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+}
+
+.head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--gap-2);
+}
+
+.name {
+	display: flex;
+	align-items: center;
+	gap: 0.45rem;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.numbers {
+	@include mono;
+	font-size: 0.8rem;
+	color: var(--text-dim);
+}
+
+.legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.25rem 1rem;
+	@include mono;
+	font-size: 0.75rem;
+	color: var(--text-dim);
+}
+
+.legendItem {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+}

@@ -1,0 +1,57 @@
+@use '@/shared/styles/mixins' as *;
+
+.chart {
+	display: flex;
+	align-items: flex-end;
+	gap: 0.35rem;
+	height: 10rem;
+}
+
+.column {
+	position: relative;
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	justify-content: flex-end;
+	height: 100%;
+
+	&:hover .tip {
+		display: block;
+	}
+}
+
+.bar {
+	height: var(--bar-height, 2%);
+	border-radius: 4px 4px 0 0; // скругление только у торца: основание стоит на базовой линии
+	background: var(--info);
+	transition: filter 0.18s;
+
+	.column:hover & {
+		filter: brightness(1.25);
+	}
+}
+
+.tip {
+	display: none;
+	position: absolute;
+	bottom: 100%;
+	left: 50%;
+	z-index: 5;
+	transform: translateX(-50%);
+	margin-bottom: 0.4rem;
+	padding: 0.4rem 0.7rem;
+	border-radius: var(--radius-sm);
+	border: 1px solid var(--line-strong);
+	background: var(--ink-2);
+	white-space: nowrap;
+	font-size: 0.8rem;
+}
+
+.axis {
+	display: flex;
+	justify-content: space-between;
+	margin-top: 0.5rem;
+	@include mono;
+	font-size: 0.72rem;
+	color: var(--text-dim);
+}

@@ -1,0 +1,110 @@
+@use '@/shared/styles/mixins' as *;
+
+.presets {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--gap-1);
+}
+
+.list {
+	overflow: hidden;
+	margin: 0;
+	padding: 0;
+	border: 1px solid var(--line);
+	border-radius: var(--radius-sm);
+	list-style: none;
+}
+
+.row {
+	display: flex;
+	width: 100%;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 0 var(--gap-2);
+	padding: 0.45rem 0.8rem;
+	border: 0;
+	border-bottom: 1px solid var(--line);
+	background: transparent;
+	color: var(--text);
+	text-align: left;
+	cursor: pointer;
+	transition: background 0.18s;
+
+	&:last-child {
+		border-bottom: 0;
+	}
+
+	&:hover {
+		background: var(--surface-3);
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--info);
+		outline-offset: -2px;
+	}
+}
+
+.active {
+	background: var(--surface-3);
+}
+
+.id {
+	@include mono;
+	font-size: 0.9rem;
+}
+
+.dim {
+	color: var(--text-dim);
+	font-size: 0.8rem;
+}
+
+.right {
+	@include mono;
+	margin-left: auto;
+	color: var(--text-dim);
+	font-size: 0.78rem;
+}
+
+.fields {
+	display: grid;
+	gap: 0 var(--gap-2);
+	grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.switches {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--gap-3);
+	align-items: center;
+}
+
+.switch {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	font-size: 0.9rem;
+}
+
+.check {
+	@include mono;
+	margin: 0;
+	padding: 0.5rem 0.7rem;
+	border-radius: var(--radius-sm);
+	font-size: 0.8rem;
+	overflow-wrap: break-word;
+}
+
+.ok {
+	background: rgb(34 197 94 / 0.12);
+	color: var(--accent);
+}
+
+.fail {
+	background: rgb(248 113 113 / 0.12);
+	color: var(--danger);
+}
+
+.hint {
+	color: var(--text-dim);
+	font-size: 0.82rem;
+}

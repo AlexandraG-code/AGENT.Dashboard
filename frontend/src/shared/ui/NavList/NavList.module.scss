@@ -1,0 +1,60 @@
+@use '@/shared/styles/mixins' as *;
+
+.list {
+	@include glass;
+	overflow: hidden;
+	padding: 0;
+}
+
+.item {
+	display: block;
+	width: 100%;
+	padding: 0.6rem 0.9rem;
+	border: 0;
+	border-bottom: 1px solid var(--line);
+	background: transparent;
+	color: var(--text);
+	text-align: left;
+	cursor: pointer;
+	transition: background 0.18s;
+
+	&:last-child {
+		border-bottom: 0;
+	}
+
+	&:hover {
+		background: var(--surface-3);
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--info);
+		outline-offset: -2px;
+	}
+}
+
+.active {
+	background: var(--surface-3);
+	box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.add {
+	color: var(--accent);
+	font-weight: 600;
+}
+
+.title {
+	font-size: 0.95rem;
+}
+
+.note {
+	display: block;
+	@include mono;
+	font-size: 0.72rem;
+	color: var(--text-dim);
+}
+
+.empty {
+	padding: 0.7rem 0.9rem;
+	color: var(--text-dim);
+	font-size: 0.9rem;
+}

@@ -1,0 +1,23 @@
+.bar {
+	display: flex;
+	gap: 2px; // зазор по фону: без него соседние доли слипаются в одно пятно
+	height: 0.6rem;
+	width: var(--bar-width, 100%);
+}
+
+.segment {
+	background: var(--segment-color, var(--text-mute));
+	opacity: var(--segment-opacity, 1);
+
+	&:first-child {
+		border-radius: 3px 0 0 3px;
+	}
+
+	&:last-child {
+		border-radius: 0 3px 3px 0;
+	}
+
+	&:only-child {
+		border-radius: 3px;
+	}
+}

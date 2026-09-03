@@ -1,114 +1,109 @@
 'use client'
 
-import { buildModelColors } from '@/shared/config'
+import { Button } from 'antd'
+import { useTranslation } from 'react-i18next'
+
 import type { StatsOut } from '@/shared/api'
+import { buildModelColors } from '@/shared/config'
 import { duration, money, tokens } from '@/shared/lib/format'
-import { GlassCard } from '@/shared/ui/GlassCard'
-import { StatTile } from '@/shared/ui/StatTile'
+import { Panel, StatTile } from '@/shared/ui'
 
 import { BreakdownTable } from './BreakdownTable'
 import { DailySpend } from './DailySpend'
 import { ModelBreakdown } from './ModelBreakdown'
 import { ProjectBreakdown } from './ProjectBreakdown'
+import styles from './StatsOverview.module.scss'
 
-interface StatsOverviewProps {
-	/** Человеческие названия пространств: в журнале лежат только идентификаторы. */
-	titles: Record<string, string>
-	/** Пустая строка — сводка по всем пространствам сразу. */
-	project: string
+interface IStatsOverviewProps {
 	stats: StatsOut
+	titles: Record<string, string>
+	project: string
 }
 
 /**
- * Сводная страница: сколько потрачено, кем и на что.
- * Данные тянутся одним запросом /api/stats — он уже отдаёт все разрезы,
- * поэтому фронт ничего не пересчитывает и цифры на всех блоках сходятся.
+ * Сводная страница расходов: плитки итогов, график по дням и разрезы.
+ * Все блоки считаются от одной выборки — её отдаёт бэкенд одним запросом,
+ * поэтому цифры на плитках, полосах и в таблице сходятся между собой.
+ *
+ * @param stats — статистика за окно по выбранной выборке
+ * @param titles — человеческие названия пространств
+ * @param project — выбранное пространство; пустая строка означает «все проекты»
  */
-export function StatsOverview({ titles, project, stats }: StatsOverviewProps) {
+export function StatsOverview({ stats, titles, project }: IStatsOverviewProps) {
+	const { t } = useTranslation()
 	const colors = buildModelColors(Object.keys(stats.models))
-	const total = stats.total
-	const paidCalls = Object.values(stats.models).reduce((sum, m) => sum + (m.cost > 0 ? m.calls : 0), 0)
+	const paidCalls = Object.values(stats.models).reduce((sum, model) => sum + (model.cost > 0 ? model.calls : 0), 0)
 
 	return (
-		<div className="flex flex-col gap-3">
-			{/* Шапка нужна печатной версии: на бумаге не видно ни вкладок, ни шапки приложения. */}
-			<div className="flex flex-wrap items-end justify-between gap-3">
-				<div className="hidden print:block">
-					<h2 className="text-lg font-semibold">Отчёт по расходам флота агентов</h2>
-					<p className="text-sm text-slate-500">
-						Сформирован {new Date().toLocaleString('ru-RU')} · период: последние {stats.daily.length} дн. ·{' '}
-						{project ? `пространство: ${titles[project] ?? project}` : 'все пространства'}
+		<div className={styles.page}>
+			<div className={styles.reportHead}>
+				<div className={styles.printOnly}>
+					<h2>{t('overview.reportTitle')}</h2>
+					<p>
+						{t('overview.reportMeta', {
+							date: new Date().toLocaleString('ru-RU'),
+							days: stats.daily.length,
+							scope: project
+								? t('overview.scopeOne', { name: titles[project] ?? project })
+								: t('overview.scopeAll')
+						})}
 					</p>
 				</div>
-				<button
-					type="button"
-					onClick={() => window.print()}
-					className="ml-auto cursor-pointer rounded-lg bg-white/5 px-3 py-2 text-sm ring-1 ring-white/10 transition hover:bg-white/10 print:hidden"
-				>
-					Выгрузить отчёт в PDF
-				</button>
+				<Button onClick={() => window.print()}>{t('overview.exportPdf')}</Button>
 			</div>
 
-			<div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+			<div className={styles.tiles}>
 				<StatTile
-					label="вызовов всего"
-					value={String(total.calls)}
-					hint={`за сутки ${stats.total_24h.calls}`}
+					label={t('overview.callsTotal')}
+					value={String(stats.total.calls)}
+					hint={t('overview.callsDaily', { count: stats.total_24h.calls })}
 				/>
 				<StatTile
-					label="потрачено"
-					value={money(total.cost)}
-					hint={`за сутки ${money(stats.total_24h.cost)}`}
-					tone={total.cost > 0 ? 'neutral' : 'good'}
+					label={t('overview.spent')}
+					value={money(stats.total.cost)}
+					hint={t('overview.spentDaily', { amount: money(stats.total_24h.cost) })}
+					tone={stats.total.cost > 0 ? 'neutral' : 'good'}
 				/>
 				<StatTile
-					label="токенов на вход"
-					value={tokens(total.tokens_in)}
-					hint={`из кэша ${tokens(total.tokens_cached)}`}
+					label={t('overview.tokensIn')}
+					value={tokens(stats.total.tokens_in)}
+					hint={t('overview.fromCache', { amount: tokens(stats.total.tokens_cached) })}
 				/>
 				<StatTile
-					label="токенов на выход"
-					value={tokens(total.tokens_out)}
-					hint={`размышления ${tokens(total.tokens_reasoning)}`}
+					label={t('overview.tokensOut')}
+					value={tokens(stats.total.tokens_out)}
+					hint={t('overview.reasoningHint', { amount: tokens(stats.total.tokens_reasoning) })}
 				/>
 				<StatTile
-					label="платных вызовов"
-					value={`${paidCalls} из ${total.calls}`}
-					hint="остальное — подписка GLM"
+					label={t('overview.paidCalls')}
+					value={t('overview.paidValue', { paid: paidCalls, total: stats.total.calls })}
+					hint={t('overview.paidHint')}
 					tone="good"
 				/>
 				<StatTile
-					label="ошибок"
-					value={String(total.errors)}
-					tone={total.errors > 0 ? 'bad' : 'good'}
-					hint={`время в моделях ${duration(total.seconds)}`}
+					label={t('overview.errors')}
+					value={String(stats.total.errors)}
+					hint={t('overview.timeInModels', { duration: duration(stats.total.seconds) })}
+					tone={stats.total.errors > 0 ? 'bad' : 'good'}
 				/>
 			</div>
 
-			<GlassCard title="Расход по дням" subtitle="последние 30 дней работы флота">
-				<div className="mt-4">
-					<DailySpend days={stats.daily} />
-				</div>
-			</GlassCard>
+			<Panel title={t('overview.daily')} subtitle={t('overview.dailyHint', { days: stats.daily.length })}>
+				<DailySpend days={stats.daily} />
+			</Panel>
 
-			<div className="grid gap-3 xl:grid-cols-2">
-				<GlassCard title="По моделям" subtitle="сколько сожрала каждая модель по всем проектам">
-					<div className="mt-4">
-						<ModelBreakdown models={stats.models} colors={colors} />
-					</div>
-				</GlassCard>
-				<GlassCard title="По проектам" subtitle="на что ушли деньги и токены">
-					<div className="mt-4">
-						<ProjectBreakdown projects={stats.projects} colors={colors} titles={titles} />
-					</div>
-				</GlassCard>
+			<div className={styles.columns}>
+				<Panel title={t('overview.byModel')} subtitle={t('overview.byModelHint')}>
+					<ModelBreakdown models={stats.models} colors={colors} />
+				</Panel>
+				<Panel title={t('overview.byProject')} subtitle={t('overview.byProjectHint')}>
+					<ProjectBreakdown projects={stats.projects} colors={colors} titles={titles} />
+				</Panel>
 			</div>
 
-			<GlassCard title="Проект × модель" subtitle="полная таблица — она же печатается в отчёт">
-				<div className="mt-4">
-					<BreakdownTable projects={stats.projects} titles={titles} />
-				</div>
-			</GlassCard>
+			<Panel title={t('overview.table')} subtitle={t('overview.tableHint')}>
+				<BreakdownTable projects={stats.projects} titles={titles} />
+			</Panel>
 		</div>
 	)
 }

@@ -1,0 +1,61 @@
+@use '@/shared/styles/mixins' as *;
+
+.totals {
+	display: grid;
+	gap: var(--gap-2);
+	grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+	margin: 0;
+}
+
+.term {
+	@include caption;
+}
+
+.value {
+	@include mono;
+	margin: 0;
+	font-size: 1rem;
+}
+
+.cached {
+	color: var(--accent);
+}
+
+.caption {
+	@include caption;
+	margin-top: var(--gap-2);
+}
+
+.rows {
+	display: flex;
+	flex-direction: column;
+	gap: var(--gap-1);
+	margin: 0.4rem 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.row {
+	display: flex;
+	flex-direction: column;
+	gap: 0.3rem;
+}
+
+.head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--gap-2);
+}
+
+.name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.numbers {
+	@include mono;
+	font-size: 0.78rem;
+	color: var(--text-dim);
+}

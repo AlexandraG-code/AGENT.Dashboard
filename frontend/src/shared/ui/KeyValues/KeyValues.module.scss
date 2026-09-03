@@ -1,0 +1,26 @@
+@use '@/shared/styles/mixins' as *;
+
+.list {
+	display: grid;
+	gap: var(--gap-2);
+	grid-template-columns: repeat(auto-fit, minmax(var(--kv-min, 130px), 1fr));
+	margin: 0;
+}
+
+.term {
+	@include caption;
+}
+
+.value {
+	@include mono;
+	margin: 0;
+	font-size: 1rem;
+}
+
+.good {
+	color: var(--accent);
+}
+
+.dim {
+	color: var(--text-dim);
+}

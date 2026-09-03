@@ -1,0 +1,91 @@
+@use '@/shared/styles/tokens';
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	color-scheme: dark;
+	font-size: 17px;
+}
+
+:root[data-surface='light'] {
+	color-scheme: light;
+}
+
+body {
+	margin: 0;
+	min-height: 100vh;
+	background: var(--ink);
+	color: var(--text);
+	font-family: var(--font-ui, var(--font-fira-sans)), sans-serif;
+	font-weight: 450;
+	-webkit-font-smoothing: antialiased;
+}
+
+:root[data-weight='normal'] body {
+	font-weight: 400;
+}
+:root[data-weight='bold'] body {
+	font-weight: 600;
+}
+
+// Источник света для стекла: без цветных пятен за содержимым размытие не читается.
+body::before {
+	content: '';
+	position: fixed;
+	inset: -20%;
+	z-index: -1;
+	pointer-events: none;
+	background:
+		radial-gradient(38% 42% at 12% 8%, rgb(34 197 94 / 0.2), transparent 70%),
+		radial-gradient(34% 38% at 88% 4%, rgb(56 189 248 / 0.18), transparent 70%),
+		radial-gradient(46% 50% at 60% 100%, rgb(129 140 248 / 0.14), transparent 70%),
+		linear-gradient(180deg, var(--ink), var(--ink-2));
+	filter: blur(40px);
+}
+
+:root[data-surface='light'] body::before,
+:root[data-surface='solid'] body::before {
+	opacity: 0.3;
+}
+
+// Печать = выгрузка отчёта в PDF: светлый макет без интерфейсных элементов,
+// карточки не рвутся между страницами. Файл сохраняет сам браузер.
+@media print {
+	@page {
+		margin: 14mm;
+		size: A4 portrait;
+	}
+
+	html {
+		color-scheme: light;
+	}
+
+	body {
+		background: #fff;
+		color: #0f172a;
+
+		&::before {
+			display: none;
+		}
+	}
+
+	header,
+	nav,
+	button,
+	.ant-select,
+	.no-print {
+		display: none !important;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before {
+		animation: none !important;
+		transition: none !important;
+	}
+}

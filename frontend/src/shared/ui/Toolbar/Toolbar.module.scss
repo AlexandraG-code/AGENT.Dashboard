@@ -1,0 +1,20 @@
+.toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: var(--gap-2);
+}
+
+.message {
+	padding-bottom: 0.4rem;
+	font-size: 0.85rem;
+	color: var(--text-dim);
+}
+
+.error {
+	color: var(--danger);
+}
+
+.success {
+	color: var(--accent);
+}

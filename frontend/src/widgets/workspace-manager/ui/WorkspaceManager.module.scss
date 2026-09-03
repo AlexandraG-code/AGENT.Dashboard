@@ -1,0 +1,37 @@
+.layout {
+	display: grid;
+	gap: var(--gap-2);
+	align-items: start;
+
+	@media (min-width: 1024px) {
+		grid-template-columns: 15rem 1fr;
+	}
+}
+
+.column {
+	display: flex;
+	flex-direction: column;
+	gap: var(--gap-2);
+}
+
+.head {
+	display: grid;
+	gap: 0 var(--gap-2);
+
+	@media (min-width: 700px) {
+		grid-template-columns: 14rem 1fr;
+	}
+}
+
+.repo {
+	min-width: 18rem;
+	flex: 1;
+}
+
+.switch {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding-bottom: 1.5rem;
+	font-size: 0.9rem;
+}

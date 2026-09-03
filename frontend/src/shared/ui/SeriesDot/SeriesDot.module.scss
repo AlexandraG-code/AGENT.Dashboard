@@ -1,0 +1,8 @@
+.dot {
+	display: inline-block;
+	width: 0.6rem;
+	height: 0.6rem;
+	flex: none;
+	border-radius: 3px;
+	background: var(--dot-color, var(--text-mute));
+}
