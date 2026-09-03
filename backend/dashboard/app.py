@@ -1,6 +1,7 @@
-"""API дашборда: живая лента вызовов, статистика, роли, контекст, запуск задач.
+"""API флота: живая лента вызовов, статистика, агенты, модели, контекст, запуск задач.
 
-Запуск: ./run-dashboard.sh  →  http://localhost:8770
+Запуск: ./run-dashboard.sh → http://localhost:8770. В браузере по этому адресу лежит
+Swagger (`/docs`), интерфейс живёт отдельно на http://localhost:3000.
 Отдельной базы нет: читаем тот же jsonl, что пишет MCP-сервер.
 Ответы описаны схемами (`schemas.py`) — из них генерируются типы фронта.
 """
@@ -13,7 +14,7 @@ from pathlib import Path
 import httpx
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -26,7 +27,14 @@ from fleet import agents, context, log, providers, roles, secrets, stats, team, 
 from fleet.config import DATA, MODELS, PROJECTS, PROVIDERS, ROLES  # noqa: E402
 from fleet.config import provider as get_provider  # noqa: E402
 
-app = FastAPI(title="AGENT.Dashboard", version="1.0.0")
+app = FastAPI(
+    title="AGENT.Dashboard",
+    version="1.0.0",
+    description=(
+        "API флота агентов. Интерфейс — отдельное приложение на http://localhost:3000, "
+        "здесь живёт только API и его описание."
+    ),
+)
 
 # Фронт на Next.js во время разработки живёт на 3000, API — на 8770.
 app.add_middleware(
@@ -35,8 +43,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-INDEX = Path(__file__).parent / "index.html"
 
 # Оригиналы загруженных материалов. В git не уезжают (см. .gitignore):
 # в репозитории живёт только выжимка, попавшая в context/.
@@ -104,10 +110,10 @@ class NoteIn(BaseModel):
     text: str
 
 
-@app.get("/", response_class=HTMLResponse, include_in_schema=False)
-def index() -> str:
-    """Лёгкий интерфейс одним файлом — работает без сборки фронта."""
-    return INDEX.read_text(encoding="utf-8")
+@app.get("/", include_in_schema=False)
+def index() -> RedirectResponse:
+    """Корень отдаёт Swagger: смотреть эндпоинты глазами нужнее, чем второй интерфейс."""
+    return RedirectResponse("/docs")
 
 
 @app.get("/api/state", response_model=StateOut)

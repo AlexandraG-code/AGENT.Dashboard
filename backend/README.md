@@ -8,7 +8,7 @@ MCP-сервер флота для Claude Code и HTTP API для интерфе
 
 ```bash
 python3 -m venv .venv && ./.venv/bin/pip install -r requirements.txt
-./run-dashboard.sh        # http://localhost:8770 — API и запасной дашборд одним файлом
+./run-dashboard.sh        # http://localhost:8770 — API, Swagger на /docs, ReDoc на /redoc
 ```
 
 MCP-сервер (`./run-mcp.sh`) запускает сам Claude Code, руками его дёргать не нужно:
@@ -38,8 +38,7 @@ claude mcp add fleet -s user -- /путь/к/AGENT.Dashboard/backend/run-mcp.sh
 | `fleet/web.py` | чтение страниц и поиск (SearXNG, если поднят) |
 | `fleet/server.py` | MCP-инструменты `fleet_*` |
 | `dashboard/app.py` | HTTP API |
-| `dashboard/schemas.py` | схемы ответов — из них генерируются типы фронта |
-| `dashboard/index.html` | запасной интерфейс одним файлом, без сборки |
+| `dashboard/schemas.py` | схемы ответов — из них генерируются типы фронта и Swagger |
 | `roles/*.md` | системные промпты агентов, перечитываются по mtime |
 
 ## Инструменты MCP
