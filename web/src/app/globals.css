@@ -1,0 +1,140 @@
+@import 'tailwindcss';
+
+/* Палитра и типографика дашборда: тёмный slate + статусный зелёный,
+   Fira Sans для интерфейса и Fira Code для чисел и кода. */
+@theme {
+	--color-ink: #0b1120;
+	--color-ink-2: #0f172a;
+	--color-line: rgb(148 163 184 / 0.18);
+	--color-accent: #22c55e;
+	--color-accent-2: #38bdf8;
+	--font-sans: var(--font-fira-sans), ui-sans-serif, system-ui, sans-serif;
+	--font-mono: var(--font-fira-code), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+html {
+	color-scheme: dark;
+}
+
+body {
+	background: var(--color-ink);
+	color: theme(--color-slate-100);
+	min-height: 100vh;
+}
+
+/* Источник света для стекла: пятна за содержимым дают кромкам цвет,
+   без них backdrop-blur не читается как стекло. */
+body::before {
+	content: '';
+	position: fixed;
+	inset: -20%;
+	z-index: -1;
+	pointer-events: none;
+	background:
+		radial-gradient(38% 42% at 12% 8%, rgb(34 197 94 / 0.2), transparent 70%),
+		radial-gradient(34% 38% at 88% 4%, rgb(56 189 248 / 0.18), transparent 70%),
+		radial-gradient(46% 50% at 60% 100%, rgb(129 140 248 / 0.14), transparent 70%),
+		linear-gradient(180deg, var(--color-ink), var(--color-ink-2));
+	filter: blur(40px);
+}
+
+/* Ядро флота в шапке: 3D-куб на CSS-трансформах, без канваса и библиотек. */
+.cube-scene {
+	perspective: 240px;
+}
+.cube {
+	transform-style: preserve-3d;
+	animation: tumble 18s linear infinite;
+}
+.cube > i {
+	position: absolute;
+	inset: 0;
+	border-radius: 7px;
+	border: 1px solid rgb(34 197 94 / 0.5);
+	background: linear-gradient(140deg, rgb(34 197 94 / 0.2), rgb(56 189 248 / 0.06));
+	box-shadow: inset 0 0 14px rgb(34 197 94 / 0.18);
+}
+.cube > i:nth-child(1) {
+	transform: translateZ(17px);
+}
+.cube > i:nth-child(2) {
+	transform: rotateY(180deg) translateZ(17px);
+}
+.cube > i:nth-child(3) {
+	transform: rotateY(90deg) translateZ(17px);
+}
+.cube > i:nth-child(4) {
+	transform: rotateY(-90deg) translateZ(17px);
+}
+.cube > i:nth-child(5) {
+	transform: rotateX(90deg) translateZ(17px);
+}
+.cube > i:nth-child(6) {
+	transform: rotateX(-90deg) translateZ(17px);
+}
+
+@keyframes tumble {
+	to {
+		transform: rotateX(360deg) rotateY(720deg);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.cube {
+		animation: none;
+	}
+}
+
+/* Печать = выгрузка в PDF: браузер сохраняет страницу в файл сам, без единой
+   зависимости на бэкенде. Поэтому печатный макет — светлый, без интерфейсных
+   элементов, и карточки не рвутся между страницами. */
+@media print {
+	@page {
+		margin: 14mm;
+		size: A4 portrait;
+	}
+	html {
+		color-scheme: light;
+	}
+	body {
+		background: #fff;
+		color: #0f172a;
+	}
+	body::before {
+		display: none;
+	}
+	header,
+	nav,
+	[role='tablist'],
+	select,
+	button:not(.print-keep) {
+		display: none !important;
+	}
+	main {
+		padding: 0 !important;
+	}
+	.print\:block {
+		display: block !important;
+	}
+	.print\:hidden {
+		display: none !important;
+	}
+	/* Стекло на бумаге не печатается — заменяем рамкой. */
+	[class*='backdrop-blur'] {
+		background: #fff !important;
+		box-shadow: none !important;
+		break-inside: avoid;
+		border: 1px solid #cbd5e1;
+	}
+	.text-slate-100,
+	.text-slate-300,
+	.text-slate-400 {
+		color: #334155 !important;
+	}
+	table {
+		break-inside: auto;
+	}
+	tr {
+		break-inside: avoid;
+	}
+}

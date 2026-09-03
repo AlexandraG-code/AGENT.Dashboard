@@ -181,6 +181,23 @@ def fleet_context(action: str, project: str, name: str = "", text: str = "",
 
 
 @mcp.tool()
+def fleet_intake(project: str, file_path: str, question: str = "") -> str:
+    """Разобрать файл в черновик заметки для контекста проекта.
+
+    Скриншоты, макеты, схемы — читает зрячий агент; логи, выгрузки, csv, json,
+    куски кода — сжимает condenser. Обе роли бесплатные.
+    Заметка НЕ сохраняется сама: прочитай её и положи в контекст через
+    fleet_context(action="write"), поправив то, что модель поняла не так.
+    """
+    try:
+        res = agents.intake(project, file_path, question)
+    except (FileNotFoundError, ValueError) as exc:
+        return f"[не разобрано] {exc}"
+    return (f"[intake · {res['kind']} · {res['model']} · ${res['cost']:.5f} · "
+            f"{res['source']}]\n\n" + _maybe_spill("intake", res["note"]))
+
+
+@mcp.tool()
 def fleet_status() -> str:
     """Состояние флота: роли, расходы, остаток на счёте DeepSeek, последние вызовы."""
     t = log.totals()

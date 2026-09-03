@@ -7,6 +7,7 @@
 
 import base64
 import mimetypes
+import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -188,3 +189,56 @@ def look(image_path: str, question: str = "", project: str = "") -> client.Answe
         max_tokens=role.max_tokens, temperature=role.temperature,
         task=f"[изображение] {question[:150]}",
     )
+
+
+# Что флот разбирает сам, без внешних конвертеров.
+IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"}
+TEXT_SUFFIXES = {
+    ".md", ".txt", ".json", ".csv", ".log", ".yml", ".yaml", ".xml", ".html",
+    ".ts", ".tsx", ".js", ".jsx", ".py", ".sql", ".scss", ".css", ".sh",
+}
+
+INTAKE_RULES = (
+    "Составь заметку для постоянного контекста проекта.\n"
+    "Оставь только то, что пригодится в работе позже: стек, соглашения, принятые решения,\n"
+    "имена сущностей и полей, ограничения, цифры.\n"
+    "Формат — markdown с заголовками и короткими пунктами, без воды и пересказа очевидного.\n"
+    "Не выдумывай: чего в материале нет, того не пиши."
+)
+
+
+def intake(project: str, file_path: str, question: str = "") -> dict:
+    """Разобрать материал (скриншот, макет, лог, выгрузку) в черновик заметки контекста.
+
+    Картинку смотрит зрячий агент, текст сжимает condenser — обе роли на GLM и
+    стоят ноль, поэтому разбор материалов можно гонять по любой мелочи.
+    Заметку функция НЕ сохраняет: сначала её читает человек, потом кладёт в контекст.
+    """
+    path = Path(file_path).expanduser()
+    if not path.exists():
+        raise FileNotFoundError(f"Нет файла {path}")
+
+    suffix = path.suffix.lower()
+    task = (question.strip() + "\n\n" if question.strip() else "") + INTAKE_RULES
+
+    if suffix in IMAGE_SUFFIXES:
+        a = look(str(path), task, project)
+        kind = "изображение"
+    elif suffix in TEXT_SUFFIXES:
+        text = path.read_text(encoding="utf-8", errors="ignore")[:60000]
+        a = ask("condenser", f"{task}\n\n# Материал: {path.name}\n\n{text}",
+                project, retrieve=False, max_tokens=4000)
+        kind = "текст"
+    else:
+        raise ValueError(
+            f"Не умею разбирать {suffix or 'файл без расширения'}. "
+            f"Картинки: {', '.join(sorted(IMAGE_SUFFIXES))}. "
+            f"Текст: {', '.join(sorted(TEXT_SUFFIXES))}."
+        )
+
+    note = (f"# {path.name}\n\n"
+            f"_Разобрано {time.strftime('%d.%m.%Y')} · {kind} · {a.model}._\n\n"
+            f"{a.text.strip()}\n")
+    log.emit("intake", project=project, name=path.name, kind=kind, cost=a.cost)
+    return {"kind": kind, "note": note, "model": a.model, "cost": a.cost,
+            "source": path.name}

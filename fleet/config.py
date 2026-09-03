@@ -131,4 +131,5 @@ PROJECTS: dict[str, str] = {
     "shaks-site": "SHAKS.Site — личный проект",
     "shaks-daylik": "SHAKS.Daylik — личный проект",
     "shaks-llmframework": "SHAKS.LLMFramework — личный проект, фреймворк для LLM",
+    "agent-dashboard": "AGENT.Dashboard — сам флот: MCP-сервер, дашборд, роли (этот репозиторий)",
 }

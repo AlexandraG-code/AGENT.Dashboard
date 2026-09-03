@@ -10,12 +10,14 @@
 import re
 from pathlib import Path
 
+from . import team
 from .config import CONTEXT_DIR, PROJECTS
 
 CORE = "_core.md"
 
 
 def project_dir(project: str) -> Path:
+    team.sync()
     if project not in PROJECTS:
         raise KeyError(f"Нет проекта {project!r}. Известны: {', '.join(PROJECTS)}")
     d = CONTEXT_DIR / project

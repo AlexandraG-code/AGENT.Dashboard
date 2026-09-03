@@ -20,7 +20,7 @@ from typing import Any
 
 import httpx
 
-from . import log
+from . import log, transcript
 from .config import MODELS, Model
 
 
@@ -144,8 +144,9 @@ def call(
     if ans.model != model_id:
         ans.meta["substituted"] = f"{model_id} → {ans.model}"
 
+    call_id = transcript.save(ans, messages, project=project, requested=model_id, task=task)
     log.emit(
-        "call", role=role, model=ans.model, requested=model_id, project=project,
+        "call", id=call_id, role=role, model=ans.model, requested=model_id, project=project,
         task=task[:200], tokens_in=ans.tokens_in, tokens_out=ans.tokens_out,
         tokens_cached=ans.tokens_cached, tokens_reasoning=ans.tokens_reasoning,
         cost=ans.cost, seconds=ans.seconds, chars_out=len(ans.text),

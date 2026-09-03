@@ -8,6 +8,7 @@ MCP-сервер после правки промпта не нужно.
 import copy
 from pathlib import Path
 
+from . import team
 from .config import ROLES, ROLES_DIR, Role
 
 _cache: dict[str, tuple[float, str]] = {}
@@ -31,6 +32,7 @@ def load_prompt(role: str) -> str:
 
 def get(role: str) -> Role:
     """Роль с подставленным свежим промптом."""
+    team.sync()
     if role not in ROLES:
         raise KeyError(f"Нет роли {role!r}. Доступны: {', '.join(ROLES)}")
     r = copy.copy(ROLES[role])
@@ -40,6 +42,7 @@ def get(role: str) -> Role:
 
 def save_prompt(role: str, text: str) -> None:
     """Сохраняет промпт роли (используется дашбордом)."""
+    team.sync()
     if role not in ROLES:
         raise KeyError(f"Нет роли {role!r}")
     ROLES_DIR.mkdir(parents=True, exist_ok=True)
@@ -48,6 +51,7 @@ def save_prompt(role: str, text: str) -> None:
 
 def all_roles() -> list[dict]:
     """Описание всех ролей для дашборда."""
+    team.sync()
     out = []
     for name, r in ROLES.items():
         out.append({

@@ -1,0 +1,32 @@
+import type { components } from './schema'
+
+// Единственный источник правды по формам данных — OpenAPI бэкенда.
+// Руками типы ответов не пишем: `yarn generateApi` перегенерирует schema.ts.
+type Schemas = components['schemas']
+
+export type Slot = Schemas['Slot']
+export type StatsOut = Schemas['StatsOut']
+export type ProjectStat = Schemas['ProjectStat']
+export type ModelStat = Schemas['ModelStat']
+export type RoleStat = Schemas['RoleStat']
+export type DayStat = Schemas['DayStat']
+export type ClaudeStat = Schemas['ClaudeStat']
+export type ClaudeSlot = Schemas['ClaudeSlot']
+export type StateOut = Schemas['StateOut']
+export type RoleOut = Schemas['RoleOut']
+export type ModelOut = Schemas['ModelOut']
+export type ProjectOut = Schemas['ProjectOut']
+export type Totals = Schemas['Totals']
+export type EventOut = Schemas['EventOut']
+export type EventsOut = Schemas['EventsOut']
+export type CallOut = Schemas['CallOut']
+export type MessageOut = Schemas['MessageOut']
+export type RunOut = Schemas['RunOut']
+export type CouncilOut = Schemas['CouncilOut']
+export type ContextOut = Schemas['ContextOut']
+export type UploadOut = Schemas['UploadOut']
+export type SavedOut = Schemas['SavedOut']
+export type RoleIn = Schemas['RoleIn']
+export type ProjectIn = Schemas['ProjectIn']
+export type TaskIn = Schemas['TaskIn']
+export type NoteIn = Schemas['NoteIn']
