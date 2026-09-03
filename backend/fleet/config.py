@@ -7,11 +7,15 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
-# Корень репозитория и каталог рантайм-данных (логи, контекст-банк).
-# data/ вынесен в .gitignore: там контекст рабочих проектов и он не должен уезжать на GitHub.
-HOME = Path(os.environ.get("FLEET_HOME", Path(__file__).resolve().parent.parent))
+# Раскладка каталогов после разделения на backend/ и frontend/:
+#   <корень>/backend/fleet/config.py — этот файл,
+#   <корень>/backend/roles/*.md      — промпты агентов (часть кода, публичные),
+#   <корень>/data/                   — память флота (отдельный приватный репозиторий).
+# Поэтому data ищется от корня проекта, а roles — от каталога бэкенда.
+BACKEND = Path(__file__).resolve().parent.parent
+HOME = Path(os.environ.get("FLEET_HOME", BACKEND.parent))
 DATA = Path(os.environ.get("FLEET_DATA", HOME / "data"))
-ROLES_DIR = Path(os.environ.get("FLEET_ROLES", HOME / "roles"))
+ROLES_DIR = Path(os.environ.get("FLEET_ROLES", BACKEND / "roles"))
 LOG_FILE = DATA / "logs" / "events.jsonl"
 CONTEXT_DIR = DATA / "context"
 

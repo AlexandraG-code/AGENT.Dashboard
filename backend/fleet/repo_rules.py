@@ -13,6 +13,8 @@
 from pathlib import Path
 
 # Что считаем правилами. Порядок важен: он же порядок в собранном тексте.
+# Ищем и в корне, и на уровень глубже: у разделённых репозиториев (backend/, frontend/)
+# общие правила лежат в корне, а частные — в папке своей части.
 PATTERNS = (
     "CLAUDE.md",
     "AGENTS.md",
@@ -20,6 +22,9 @@ PATTERNS = (
     ".claude/rules/*.md",
     ".github/copilot-instructions.md",
     "CONTRIBUTING.md",
+    "*/CLAUDE.md",
+    "*/AGENTS.md",
+    "*/.claude/rules/*.md",
 )
 LIMIT = 120_000
 
