@@ -20,7 +20,7 @@ export function BreakdownTable({ projects, titles }: BreakdownTableProps) {
 			<table className="w-full min-w-[560px] border-collapse text-sm">
 				<caption className="sr-only">Расход по проектам и моделям</caption>
 				<thead>
-					<tr className="border-b border-white/10 text-left text-[11px] tracking-wide text-slate-400 uppercase">
+					<tr className="border-b border-white/10 text-left text-xs tracking-wide text-slate-400 uppercase">
 						<th className="py-2 pr-3 font-medium">Проект</th>
 						<th className="py-2 pr-3 font-medium">Модель</th>
 						<th className="py-2 pr-3 text-right font-medium">Вызовов</th>
@@ -32,7 +32,9 @@ export function BreakdownTable({ projects, titles }: BreakdownTableProps) {
 				<tbody className="font-mono text-xs text-slate-300 tabular-nums">
 					{rows.map(({ id, model, slot }) => (
 						<tr key={`${id}:${model}`} className="border-b border-white/5 last:border-0">
-							<td className="py-1.5 pr-3 font-sans text-slate-100">{titles[id] ?? id}</td>
+							<td className="py-1.5 pr-3 font-sans text-slate-100">
+								{titles[id] ?? (id === '—' ? 'без пространства' : id)}
+							</td>
 							<td className="py-1.5 pr-3">{model}</td>
 							<td className="py-1.5 pr-3 text-right">{slot.calls}</td>
 							<td className="py-1.5 pr-3 text-right">{tokens(slot.tokens_in)}</td>

@@ -16,34 +16,67 @@ LOG_FILE = DATA / "logs" / "events.jsonl"
 CONTEXT_DIR = DATA / "context"
 
 
-@dataclass(frozen=True)
+@dataclass
 class Provider:
+    """Куда ходить за моделью и как представляться.
+
+    Ключ ищется сначала в data/secrets.json (его задают в дашборде), потом в
+    окружении по `key_env`. В team.json ключи не попадают никогда: этот файл
+    лежит в репозитории с контекстом, пусть и приватном.
+    """
+
     name: str
+    title: str
     base_url: str
-    api_key_env: str
+    # bearer — GLM, DeepSeek, OpenAI-совместимые; api-key — Yandex Cloud;
+    # gigachat — Сбер, там сначала обмен ключа на access_token.
+    auth: str = "bearer"
+    key_env: str = ""
+    # У GigaChat цепочка сертификатов подписана НУЦ Минцифры, которого нет в
+    # системном хранилище: без этого флага запрос падает на проверке TLS.
+    verify_ssl: bool = True
+    headers: dict = field(default_factory=dict)
+    # GLM и DeepSeek понимают поле thinking; чужим эндпоинтам оно ломает запрос.
+    send_thinking: bool = True
+    builtin: bool = False
 
     @property
     def api_key(self) -> str:
-        key = os.environ.get(self.api_key_env, "")
+        from . import secrets
+
+        key = secrets.get(self.name) or os.environ.get(self.key_env, "")
         if not key:
-            raise RuntimeError(f"Не задан {self.api_key_env} — добавь его в ~/.zshrc")
+            where = f"в дашборде или в переменной {self.key_env}" if self.key_env else "в дашборде"
+            raise RuntimeError(f"Не задан ключ провайдера {self.title} — укажи его {where}")
         return key
 
 
 # GLM работает ТОЛЬКО через coding-эндпоинт: обычный /paas/v4 отвечает 1113 (нет баланса).
-GLM = Provider("glm", "https://api.z.ai/api/coding/paas/v4", "GLM_API_KEY")
-DEEPSEEK = Provider("deepseek", "https://api.deepseek.com", "DEEPSEEK_API_KEY")
+PROVIDERS: dict[str, Provider] = {
+    "glm": Provider("glm", "z.ai (GLM)", "https://api.z.ai/api/coding/paas/v4",
+                    key_env="GLM_API_KEY", builtin=True),
+    "deepseek": Provider("deepseek", "DeepSeek", "https://api.deepseek.com",
+                         key_env="DEEPSEEK_API_KEY", builtin=True),
+}
+
+
+def provider(name: str) -> Provider:
+    if name not in PROVIDERS:
+        raise KeyError(f"Нет провайдера {name!r}. Известны: {', '.join(PROVIDERS)}")
+    return PROVIDERS[name]
 
 
 @dataclass(frozen=True)
 class Model:
     id: str
-    provider: Provider
+    # Имя провайдера, а не объект: модели заводятся из дашборда и хранятся в json.
+    provider: str
     # Цена за 1M токенов в USD. Для GLM ноль: подписка Coding Plan, вызов бесплатен на марже.
     price_in: float = 0.0
     price_in_cached: float = 0.0
     price_out: float = 0.0
     vision: bool = False
+    title: str = ""
     # Лимит одновременных запросов — из тарифа z.ai / здравого смысла для DeepSeek.
     concurrency: int = 3
 
@@ -58,17 +91,17 @@ class Model:
 
 # Проверено живыми запросами: остальные имена GLM молча подменяются на эти три.
 MODELS: dict[str, Model] = {
-    "glm-5.3": Model("glm-5.3", GLM, concurrency=5),
-    "glm-5.3-flash": Model("glm-5.3-flash", GLM, concurrency=50),
-    "glm-4.6v": Model("glm-4.6v", GLM, vision=True, concurrency=10),
+    "glm-5.3": Model("glm-5.3", "glm", concurrency=5),
+    "glm-5.3-flash": Model("glm-5.3-flash", "glm", concurrency=50),
+    "glm-4.6v": Model("glm-4.6v", "glm", vision=True, concurrency=10),
     "deepseek-v4-pro": Model(
-        "deepseek-v4-pro", DEEPSEEK, 0.435, 0.003625, 0.87, concurrency=8
+        "deepseek-v4-pro", "deepseek", 0.435, 0.003625, 0.87, concurrency=8
     ),
     "deepseek-v4-flash": Model(
-        "deepseek-v4-flash", DEEPSEEK, 0.14, 0.0028, 0.28, concurrency=8
+        "deepseek-v4-flash", "deepseek", 0.14, 0.0028, 0.28, concurrency=8
     ),
     "deepseek-v4-flash-vision-exp": Model(
-        "deepseek-v4-flash-vision-exp", DEEPSEEK, 0.14, 0.0028, 0.28, vision=True, concurrency=4
+        "deepseek-v4-flash-vision-exp", "deepseek", 0.14, 0.0028, 0.28, vision=True, concurrency=4
     ),
 }
 

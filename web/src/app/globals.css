@@ -138,3 +138,106 @@ body::before {
 		break-inside: avoid;
 	}
 }
+
+/* ---- Настройки читаемости ----
+   Размер и семейство шрифта, насыщенность, контраст и фон переключаются
+   атрибутами на <html>. Правки бьют по конкретным классам Tailwind, которыми
+   размечены компоненты: так настройка работает на всём интерфейсе сразу,
+   а не только там, где о ней вспомнили. */
+
+:root[data-font='system'] {
+	--font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+:root[data-font='verdana'] {
+	--font-sans: Verdana, Geneva, sans-serif;
+}
+
+:root[data-weight='medium'] body {
+	font-weight: 450;
+}
+:root[data-weight='bold'] body {
+	font-weight: 600;
+}
+:root[data-weight='bold'] .text-slate-400,
+:root[data-weight='bold'] .text-slate-500,
+:root[data-weight='medium'] .text-slate-400 {
+	font-weight: 500;
+}
+
+/* Высокий контраст: приглушённые подписи перестают быть серыми, кромки видны. */
+:root[data-contrast='high'] .text-slate-400 {
+	color: #cbd5e1;
+}
+:root[data-contrast='high'] .text-slate-500 {
+	color: #b6c2d2;
+}
+:root[data-contrast='high'] .text-slate-300 {
+	color: #e2e8f0;
+}
+:root[data-contrast='high'] [class*='ring-white\\/10'] {
+	--tw-ring-color: rgb(255 255 255 / 0.22);
+}
+:root[data-contrast='high'] .text-emerald-400 {
+	color: #6ee7a8;
+}
+
+/* Сплошной фон: стекло красивое, но полупрозрачность съедает контраст текста. */
+:root[data-surface='solid'] body::before {
+	opacity: 0.35;
+}
+:root[data-surface='solid'] [class*='backdrop-blur'] {
+	background: #131a29 !important;
+	backdrop-filter: none !important;
+}
+
+/* Светлая тема: те же классы, но перекрашенные — компоненты о ней не знают. */
+:root[data-surface='light'] {
+	color-scheme: light;
+}
+:root[data-surface='light'] body {
+	background: #eef2f7;
+	color: #0f172a;
+}
+:root[data-surface='light'] body::before {
+	opacity: 0.25;
+}
+:root[data-surface='light'] [class*='backdrop-blur'] {
+	background: rgb(255 255 255 / 0.9) !important;
+}
+:root[data-surface='light'] [class*='ring-white'] {
+	--tw-ring-color: rgb(15 23 42 / 0.16);
+}
+:root[data-surface='light'] .text-slate-100,
+:root[data-surface='light'] h1,
+:root[data-surface='light'] h2,
+:root[data-surface='light'] h3 {
+	color: #0f172a;
+}
+:root[data-surface='light'] .text-slate-300 {
+	color: #334155;
+}
+:root[data-surface='light'] .text-slate-400,
+:root[data-surface='light'] .text-slate-500 {
+	color: #475569;
+}
+:root[data-surface='light'] .bg-white\/5 {
+	background: rgb(15 23 42 / 0.04);
+}
+:root[data-surface='light'] .bg-white\/10 {
+	background: rgb(15 23 42 / 0.08);
+}
+:root[data-surface='light'] .bg-slate-950\/60,
+:root[data-surface='light'] .bg-slate-900\/80,
+:root[data-surface='light'] .bg-slate-900\/60 {
+	background: rgb(255 255 255 / 0.92);
+}
+:root[data-surface='light'] .text-emerald-400 {
+	color: #047857;
+}
+:root[data-surface='light'] .text-rose-400 {
+	color: #be123c;
+}
+:root[data-surface='light'] option {
+	background: #fff;
+	color: #0f172a;
+}

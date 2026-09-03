@@ -20,7 +20,7 @@ interface FieldProps {
 export function Field({ label, id, hint, error, className, children }: FieldProps) {
 	return (
 		<div className={cn('flex flex-col gap-1.5', className)}>
-			<label htmlFor={id} className="text-[11px] tracking-wide text-slate-400 uppercase">
+			<label htmlFor={id} className="text-xs tracking-wide text-slate-400 uppercase">
 				{label}
 			</label>
 			{children}

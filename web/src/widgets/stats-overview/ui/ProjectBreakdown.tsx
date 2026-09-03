@@ -28,7 +28,9 @@ export function ProjectBreakdown({ projects, colors, titles }: ProjectBreakdownP
 			{rows.map(([id, stat]) => (
 				<li key={id}>
 					<div className="flex items-baseline justify-between gap-3 text-sm">
-						<span className="truncate text-slate-100">{titles[id] ?? id}</span>
+						<span className="truncate text-slate-100">
+							{titles[id] ?? (id === '—' ? 'без пространства' : id)}
+						</span>
 						<span className="font-mono text-xs text-slate-400 tabular-nums">
 							{money(stat.cost)} · {percent(stat.cost, totalCost)} · {stat.calls} выз.
 						</span>
@@ -49,7 +51,7 @@ export function ProjectBreakdown({ projects, colors, titles }: ProjectBreakdownP
 							/>
 						))}
 					</div>
-					<div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[11px] text-slate-400 tabular-nums">
+					<div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 font-mono text-xs text-slate-400 tabular-nums">
 						{Object.entries(stat.by_model).map(([model, slot]) => (
 							<span key={model} className="flex items-center gap-1.5">
 								<SeriesDot color={colors[model] ?? '#64748b'} className="h-2 w-2" />

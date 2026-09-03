@@ -39,7 +39,7 @@ export function DailySpend({ days }: DailySpendProps) {
 					</div>
 				))}
 			</div>
-			<div className="mt-2 flex justify-between font-mono text-[11px] text-slate-400">
+			<div className="mt-2 flex justify-between font-mono text-xs text-slate-400">
 				<span>{days[0]?.date}</span>
 				<span>
 					пик {money(peak)} · {peakDate}

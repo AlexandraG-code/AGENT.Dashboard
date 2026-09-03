@@ -19,11 +19,12 @@ from pydantic import BaseModel
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from dashboard.schemas import (  # noqa: E402
-    CallOut, ContextOut, CouncilOut, EventsOut, RunOut, SavedOut, StateOut,
-    StatsOut, UploadOut,
+    CallOut, CheckOut, ContextOut, CouncilOut, EventsOut, RunOut, SavedOut,
+    StateOut, StatsOut, UploadOut,
 )
-from fleet import agents, context, log, roles, stats, team, transcript  # noqa: E402
-from fleet.config import DATA, DEEPSEEK, MODELS, PROJECTS, ROLES  # noqa: E402
+from fleet import agents, context, log, providers, roles, secrets, stats, team, transcript  # noqa: E402
+from fleet.config import DATA, MODELS, PROJECTS, PROVIDERS, ROLES  # noqa: E402
+from fleet.config import provider as get_provider  # noqa: E402
 
 app = FastAPI(title="AGENT.Dashboard", version="1.0.0")
 
@@ -73,6 +74,30 @@ class RoleIn(BaseModel):
     prompt: str | None = None
 
 
+class ProviderIn(BaseModel):
+    """Провайдер из формы. Ключ приходит отдельным полем и в team.json не попадает."""
+
+    name: str
+    title: str = ""
+    base_url: str
+    auth: str = "bearer"
+    key_env: str = ""
+    verify_ssl: bool = True
+    send_thinking: bool = False
+    api_key: str | None = None
+
+
+class ModelIn(BaseModel):
+    id: str
+    provider: str
+    title: str = ""
+    price_in: float = 0.0
+    price_in_cached: float = 0.0
+    price_out: float = 0.0
+    concurrency: int = 3
+    vision: bool = False
+
+
 class NoteIn(BaseModel):
     project: str
     name: str
@@ -90,21 +115,32 @@ def state() -> dict:
     """Всё, что нужно для первой отрисовки: агенты, пространства, сводка, баланс."""
     team.sync()
     balance = None
-    try:
-        r = httpx.get(f"{DEEPSEEK.base_url}/user/balance",
-                      headers={"Authorization": f"Bearer {DEEPSEEK.api_key}"},
-                      timeout=8).json()
-        balance = float(r["balance_infos"][0]["total_balance"])
-    except Exception:
-        pass
+    deepseek = PROVIDERS.get("deepseek")
+    if deepseek is not None:
+        # Единственный провайдер, который отдаёт остаток счёта. У подписочных
+        # (GLM) такого эндпоинта нет — там показываем собственный расход.
+        try:
+            r = httpx.get(f"{deepseek.base_url}/user/balance",
+                          headers={"Authorization": f"Bearer {deepseek.api_key}"},
+                          timeout=8).json()
+            balance = float(r["balance_infos"][0]["total_balance"])
+        except Exception:
+            pass
     return {
         "roles": roles.all_roles(),
         "projects": [{"id": k, "title": v} for k, v in PROJECTS.items()],
         "models": {
-            k: {"provider": m.provider.name, "price_out": m.price_out,
+            k: {"id": k, "title": m.title, "provider": m.provider, "price_in": m.price_in,
+                "price_in_cached": m.price_in_cached, "price_out": m.price_out,
                 "concurrency": m.concurrency, "vision": m.vision}
             for k, m in MODELS.items()
         },
+        "providers": [
+            {"name": p.name, "title": p.title, "base_url": p.base_url, "auth": p.auth,
+             "key_env": p.key_env, "verify_ssl": p.verify_ssl, "send_thinking": p.send_thinking,
+             "builtin": p.builtin, "has_key": secrets.has(p.name, p.key_env)}
+            for p in PROVIDERS.values()
+        ],
         "totals": log.totals(),
         "balance": balance,
     }
@@ -265,3 +301,119 @@ def upload(project: str = Form(...), question: str = Form(""),
     res["stored"] = str(target)
     res["bytes"] = len(blob)
     return res
+
+
+@app.post("/api/provider", response_model=SavedOut)
+def provider_save(body: ProviderIn) -> dict:
+    """Завести или изменить провайдера моделей (OpenAI-совместимый, Yandex, GigaChat)."""
+    try:
+        provider = team.set_provider(
+            body.name, title=body.title, base_url=body.base_url, auth=body.auth,
+            key_env=body.key_env, verify_ssl=body.verify_ssl, send_thinking=body.send_thinking,
+        )
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+    if body.api_key is not None:
+        secrets.put(provider.name, body.api_key.strip())
+    log.emit("provider_saved", name=provider.name)
+    return {"ok": True, "name": provider.name, "title": provider.title}
+
+
+@app.delete("/api/provider/{name}", response_model=SavedOut)
+def provider_delete(name: str) -> dict:
+    try:
+        team.delete_provider(name)
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+    secrets.put(name, "")
+    log.emit("provider_deleted", name=name)
+    return {"ok": True, "name": name}
+
+
+@app.post("/api/model", response_model=SavedOut)
+def model_save(body: ModelIn) -> dict:
+    """Завести или изменить модель. id — то, что уходит в поле model запроса."""
+    try:
+        model = team.set_model(
+            body.id, provider=body.provider, title=body.title, price_in=body.price_in,
+            price_in_cached=body.price_in_cached, price_out=body.price_out,
+            concurrency=body.concurrency, vision=body.vision,
+        )
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+    log.emit("model_saved", name=model.id, provider=model.provider)
+    return {"ok": True, "name": model.id}
+
+
+@app.delete("/api/model", response_model=SavedOut)
+def model_delete(id: str) -> dict:
+    """Идентификатор моделью приходит query-параметром: у Yandex он вида gpt://…/latest."""
+    try:
+        team.delete_model(id)
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+    log.emit("model_deleted", name=id)
+    return {"ok": True, "name": id}
+
+
+@app.post("/api/provider/{name}/check", response_model=CheckOut)
+def provider_check(name: str, model: str = "") -> dict:
+    """Проверить связь с провайдером. Без модели — запрос каталога, с моделью — короткий вызов."""
+    try:
+        provider = get_provider(name)
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    result = providers.check(provider, model)
+    log.emit("provider_check", name=name, model=model, ok=result["ok"],
+             status=result["status"], message=result["message"][:200])
+    return result
+
+
+class TextIn(BaseModel):
+    project: str
+    text: str
+    question: str = ""
+    source: str = ""
+
+
+class RulesIn(BaseModel):
+    project: str
+    repo: str
+    compress: bool = True
+
+
+@app.post("/api/intake/text", response_model=UploadOut)
+def intake_text(body: TextIn) -> dict:
+    """Разобрать вставленный кусок (лог, код, переписку) в черновик заметки."""
+    if body.project not in PROJECTS:
+        raise HTTPException(404, f"нет пространства {body.project}")
+    if not body.text.strip():
+        raise HTTPException(400, "пустой текст")
+    try:
+        res = agents.digest_text(body.project, body.text, body.question, body.source)
+    except Exception as exc:
+        raise HTTPException(500, str(exc)[:500]) from exc
+    res["name"] = (body.source or "материал").replace(" ", "-")[:60] + ".md"
+    res["stored"] = ""
+    res["bytes"] = len(body.text.encode())
+    return res
+
+
+@app.post("/api/workspace/rules", response_model=UploadOut)
+def workspace_rules(body: RulesIn) -> dict:
+    """Забрать правила проекта из его репозитория в черновик _rules.md."""
+    if body.project not in PROJECTS:
+        raise HTTPException(404, f"нет пространства {body.project}")
+    try:
+        res = agents.rules_from_repo(body.project, body.repo, body.compress)
+    except FileNotFoundError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(500, str(exc)[:500]) from exc
+    return {"kind": "правила", "note": res["note"], "model": res["model"], "cost": res["cost"],
+            "source": ", ".join(res["sources"]), "name": "_rules.md", "stored": body.repo,
+            "bytes": res["chars"]}

@@ -100,6 +100,8 @@ export function AgentEditor({ roles, models, onChanged }: AgentEditorProps) {
 						type="button"
 						onClick={() => {
 							setSelected(role.name)
+							setDraft({ ...role, fallback: role.fallback ?? null })
+							setStatus('')
 							setError('')
 						}}
 						className={cn(
@@ -108,7 +110,7 @@ export function AgentEditor({ roles, models, onChanged }: AgentEditorProps) {
 						)}
 					>
 						<span className="text-sm text-slate-100">{role.name}</span>
-						<span className="block font-mono text-[11px] text-slate-400">
+						<span className="block font-mono text-xs text-slate-400">
 							{role.model}
 							{role.thinking ? ' · думает' : ''}
 						</span>

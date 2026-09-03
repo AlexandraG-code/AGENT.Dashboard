@@ -32,28 +32,28 @@ export function ClaudeUsage({ claude }: ClaudeUsageProps) {
 		>
 			<dl className="mt-3 grid grid-cols-2 gap-3 font-mono text-sm tabular-nums sm:grid-cols-5">
 				<div>
-					<dt className="font-sans text-[11px] tracking-wide text-slate-400 uppercase">ответов</dt>
+					<dt className="font-sans text-xs tracking-wide text-slate-400 uppercase">ответов</dt>
 					<dd>{claude.total.calls}</dd>
 				</div>
 				<div>
-					<dt className="font-sans text-[11px] tracking-wide text-slate-400 uppercase">вход</dt>
+					<dt className="font-sans text-xs tracking-wide text-slate-400 uppercase">вход</dt>
 					<dd>{tokens(claude.total.tokens_in)}</dd>
 				</div>
 				<div>
-					<dt className="font-sans text-[11px] tracking-wide text-slate-400 uppercase">из кэша</dt>
+					<dt className="font-sans text-xs tracking-wide text-slate-400 uppercase">из кэша</dt>
 					<dd className="text-emerald-400">{tokens(claude.total.tokens_cached)}</dd>
 				</div>
 				<div>
-					<dt className="font-sans text-[11px] tracking-wide text-slate-400 uppercase">выход</dt>
+					<dt className="font-sans text-xs tracking-wide text-slate-400 uppercase">выход</dt>
 					<dd>{tokens(claude.total.tokens_out)}</dd>
 				</div>
 				<div>
-					<dt className="font-sans text-[11px] tracking-wide text-slate-400 uppercase">размышления</dt>
+					<dt className="font-sans text-xs tracking-wide text-slate-400 uppercase">размышления</dt>
 					<dd>{tokens(claude.total.tokens_reasoning)}</dd>
 				</div>
 			</dl>
 
-			<p className="mt-4 text-[11px] tracking-wide text-slate-400 uppercase">по каталогам работы</p>
+			<p className="mt-4 text-xs tracking-wide text-slate-400 uppercase">по каталогам работы</p>
 			<ul className="mt-2 flex flex-col gap-2">
 				{projects.map(([name, slot]) => {
 					const total = slot.tokens_in + slot.tokens_out

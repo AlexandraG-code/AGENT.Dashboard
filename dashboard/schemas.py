@@ -96,10 +96,28 @@ class RoleOut(BaseModel):
 
 
 class ModelOut(BaseModel):
+    id: str = ""
+    title: str = ""
     provider: str
-    price_out: float
-    concurrency: int
-    vision: bool
+    price_in: float = 0.0
+    price_in_cached: float = 0.0
+    price_out: float = 0.0
+    concurrency: int = 3
+    vision: bool = False
+
+
+class ProviderOut(BaseModel):
+    """Провайдер моделей. Ключ наружу не отдаётся — только признак «задан»."""
+
+    name: str
+    title: str
+    base_url: str
+    auth: str
+    key_env: str = ""
+    verify_ssl: bool = True
+    send_thinking: bool = True
+    builtin: bool = False
+    has_key: bool = False
 
 
 class ProjectOut(BaseModel):
@@ -111,6 +129,7 @@ class StateOut(BaseModel):
     roles: list[RoleOut]
     projects: list[ProjectOut]
     models: dict[str, ModelOut]
+    providers: list[ProviderOut]
     totals: Totals
     balance: float | None = None
 
@@ -217,6 +236,17 @@ class UploadOut(BaseModel):
     name: str
     stored: str
     bytes: int
+
+
+class CheckOut(BaseModel):
+    """Результат проверки связи с провайдером."""
+
+    ok: bool
+    status: int = 0
+    message: str = ""
+    detail: str = ""
+    seconds: float = 0.0
+    model: str = ""
 
 
 class SavedOut(BaseModel):

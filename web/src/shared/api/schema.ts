@@ -278,6 +278,127 @@ export interface paths {
 		patch?: never
 		trace?: never
 	}
+	'/api/provider': {
+		parameters: {
+			query?: never
+			header?: never
+			path?: never
+			cookie?: never
+		}
+		get?: never
+		put?: never
+		/**
+		 * Provider Save
+		 * @description Завести или изменить провайдера моделей (OpenAI-совместимый, Yandex, GigaChat).
+		 */
+		post: operations['provider_save_api_provider_post']
+		delete?: never
+		options?: never
+		head?: never
+		patch?: never
+		trace?: never
+	}
+	'/api/provider/{name}': {
+		parameters: {
+			query?: never
+			header?: never
+			path?: never
+			cookie?: never
+		}
+		get?: never
+		put?: never
+		post?: never
+		/** Provider Delete */
+		delete: operations['provider_delete_api_provider__name__delete']
+		options?: never
+		head?: never
+		patch?: never
+		trace?: never
+	}
+	'/api/model': {
+		parameters: {
+			query?: never
+			header?: never
+			path?: never
+			cookie?: never
+		}
+		get?: never
+		put?: never
+		/**
+		 * Model Save
+		 * @description Завести или изменить модель. id — то, что уходит в поле model запроса.
+		 */
+		post: operations['model_save_api_model_post']
+		/**
+		 * Model Delete
+		 * @description Идентификатор моделью приходит query-параметром: у Yandex он вида gpt://…/latest.
+		 */
+		delete: operations['model_delete_api_model_delete']
+		options?: never
+		head?: never
+		patch?: never
+		trace?: never
+	}
+	'/api/provider/{name}/check': {
+		parameters: {
+			query?: never
+			header?: never
+			path?: never
+			cookie?: never
+		}
+		get?: never
+		put?: never
+		/**
+		 * Provider Check
+		 * @description Проверить связь с провайдером. Без модели — запрос каталога, с моделью — короткий вызов.
+		 */
+		post: operations['provider_check_api_provider__name__check_post']
+		delete?: never
+		options?: never
+		head?: never
+		patch?: never
+		trace?: never
+	}
+	'/api/intake/text': {
+		parameters: {
+			query?: never
+			header?: never
+			path?: never
+			cookie?: never
+		}
+		get?: never
+		put?: never
+		/**
+		 * Intake Text
+		 * @description Разобрать вставленный кусок (лог, код, переписку) в черновик заметки.
+		 */
+		post: operations['intake_text_api_intake_text_post']
+		delete?: never
+		options?: never
+		head?: never
+		patch?: never
+		trace?: never
+	}
+	'/api/workspace/rules': {
+		parameters: {
+			query?: never
+			header?: never
+			path?: never
+			cookie?: never
+		}
+		get?: never
+		put?: never
+		/**
+		 * Workspace Rules
+		 * @description Забрать правила проекта из его репозитория в черновик _rules.md.
+		 */
+		post: operations['workspace_rules_api_workspace_rules_post']
+		delete?: never
+		options?: never
+		head?: never
+		patch?: never
+		trace?: never
+	}
 }
 export type webhooks = Record<string, never>
 export interface components {
@@ -376,6 +497,39 @@ export interface components {
 			 * @default 0
 			 */
 			seconds: number
+		}
+		/**
+		 * CheckOut
+		 * @description Результат проверки связи с провайдером.
+		 */
+		CheckOut: {
+			/** Ok */
+			ok: boolean
+			/**
+			 * Status
+			 * @default 0
+			 */
+			status: number
+			/**
+			 * Message
+			 * @default
+			 */
+			message: string
+			/**
+			 * Detail
+			 * @default
+			 */
+			detail: string
+			/**
+			 * Seconds
+			 * @default 0
+			 */
+			seconds: number
+			/**
+			 * Model
+			 * @default
+			 */
+			model: string
 		}
 		/**
 		 * ClaudeSlot
@@ -569,15 +723,81 @@ export interface components {
 				  }[]
 				| null
 		}
-		/** ModelOut */
-		ModelOut: {
+		/** ModelIn */
+		ModelIn: {
+			/** Id */
+			id: string
 			/** Provider */
 			provider: string
-			/** Price Out */
+			/**
+			 * Title
+			 * @default
+			 */
+			title: string
+			/**
+			 * Price In
+			 * @default 0
+			 */
+			price_in: number
+			/**
+			 * Price In Cached
+			 * @default 0
+			 */
+			price_in_cached: number
+			/**
+			 * Price Out
+			 * @default 0
+			 */
 			price_out: number
-			/** Concurrency */
+			/**
+			 * Concurrency
+			 * @default 3
+			 */
 			concurrency: number
-			/** Vision */
+			/**
+			 * Vision
+			 * @default false
+			 */
+			vision: boolean
+		}
+		/** ModelOut */
+		ModelOut: {
+			/**
+			 * Id
+			 * @default
+			 */
+			id: string
+			/**
+			 * Title
+			 * @default
+			 */
+			title: string
+			/** Provider */
+			provider: string
+			/**
+			 * Price In
+			 * @default 0
+			 */
+			price_in: number
+			/**
+			 * Price In Cached
+			 * @default 0
+			 */
+			price_in_cached: number
+			/**
+			 * Price Out
+			 * @default 0
+			 */
+			price_out: number
+			/**
+			 * Concurrency
+			 * @default 3
+			 */
+			concurrency: number
+			/**
+			 * Vision
+			 * @default false
+			 */
 			vision: boolean
 		}
 		/** ModelStat */
@@ -735,6 +955,82 @@ export interface components {
 			prompt: string
 		}
 		/**
+		 * ProviderIn
+		 * @description Провайдер из формы. Ключ приходит отдельным полем и в team.json не попадает.
+		 */
+		ProviderIn: {
+			/** Name */
+			name: string
+			/**
+			 * Title
+			 * @default
+			 */
+			title: string
+			/** Base Url */
+			base_url: string
+			/**
+			 * Auth
+			 * @default bearer
+			 */
+			auth: string
+			/**
+			 * Key Env
+			 * @default
+			 */
+			key_env: string
+			/**
+			 * Verify Ssl
+			 * @default true
+			 */
+			verify_ssl: boolean
+			/**
+			 * Send Thinking
+			 * @default false
+			 */
+			send_thinking: boolean
+			/** Api Key */
+			api_key?: string | null
+		}
+		/**
+		 * ProviderOut
+		 * @description Провайдер моделей. Ключ наружу не отдаётся — только признак «задан».
+		 */
+		ProviderOut: {
+			/** Name */
+			name: string
+			/** Title */
+			title: string
+			/** Base Url */
+			base_url: string
+			/** Auth */
+			auth: string
+			/**
+			 * Key Env
+			 * @default
+			 */
+			key_env: string
+			/**
+			 * Verify Ssl
+			 * @default true
+			 */
+			verify_ssl: boolean
+			/**
+			 * Send Thinking
+			 * @default true
+			 */
+			send_thinking: boolean
+			/**
+			 * Builtin
+			 * @default false
+			 */
+			builtin: boolean
+			/**
+			 * Has Key
+			 * @default false
+			 */
+			has_key: boolean
+		}
+		/**
 		 * RoleIn
 		 * @description Настройки агента из формы. prompt=None означает «промпт не трогать».
 		 */
@@ -858,6 +1154,18 @@ export interface components {
 				[key: string]: components['schemas']['Slot']
 			}
 		}
+		/** RulesIn */
+		RulesIn: {
+			/** Project */
+			project: string
+			/** Repo */
+			repo: string
+			/**
+			 * Compress
+			 * @default true
+			 */
+			compress: boolean
+		}
 		/** RunOut */
 		RunOut: {
 			/** Text */
@@ -949,6 +1257,8 @@ export interface components {
 			models: {
 				[key: string]: components['schemas']['ModelOut']
 			}
+			/** Providers */
+			providers: components['schemas']['ProviderOut'][]
 			totals: components['schemas']['Totals']
 			/** Balance */
 			balance?: number | null
@@ -989,6 +1299,23 @@ export interface components {
 			 * @default
 			 */
 			extra: string
+		}
+		/** TextIn */
+		TextIn: {
+			/** Project */
+			project: string
+			/** Text */
+			text: string
+			/**
+			 * Question
+			 * @default
+			 */
+			question: string
+			/**
+			 * Source
+			 * @default
+			 */
+			source: string
 		}
 		/**
 		 * Totals
@@ -1520,6 +1847,233 @@ export interface operations {
 		requestBody: {
 			content: {
 				'multipart/form-data': components['schemas']['Body_upload_api_upload_post']
+			}
+		}
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown
+				}
+				content: {
+					'application/json': components['schemas']['UploadOut']
+				}
+			}
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown
+				}
+				content: {
+					'application/json': components['schemas']['HTTPValidationError']
+				}
+			}
+		}
+	}
+	provider_save_api_provider_post: {
+		parameters: {
+			query?: never
+			header?: never
+			path?: never
+			cookie?: never
+		}
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['ProviderIn']
+			}
+		}
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown
+				}
+				content: {
+					'application/json': components['schemas']['SavedOut']
+				}
+			}
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown
+				}
+				content: {
+					'application/json': components['schemas']['HTTPValidationError']
+				}
+			}
+		}
+	}
+	provider_delete_api_provider__name__delete: {
+		parameters: {
+			query?: never
+			header?: never
+			path: {
+				name: string
+			}
+			cookie?: never
+		}
+		requestBody?: never
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown
+				}
+				content: {
+					'application/json': components['schemas']['SavedOut']
+				}
+			}
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown
+				}
+				content: {
+					'application/json': components['schemas']['HTTPValidationError']
+				}
+			}
+		}
+	}
+	model_save_api_model_post: {
+		parameters: {
+			query?: never
+			header?: never
+			path?: never
+			cookie?: never
+		}
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['ModelIn']
+			}
+		}
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown
+				}
+				content: {
+					'application/json': components['schemas']['SavedOut']
+				}
+			}
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown
+				}
+				content: {
+					'application/json': components['schemas']['HTTPValidationError']
+				}
+			}
+		}
+	}
+	model_delete_api_model_delete: {
+		parameters: {
+			query: {
+				id: string
+			}
+			header?: never
+			path?: never
+			cookie?: never
+		}
+		requestBody?: never
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown
+				}
+				content: {
+					'application/json': components['schemas']['SavedOut']
+				}
+			}
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown
+				}
+				content: {
+					'application/json': components['schemas']['HTTPValidationError']
+				}
+			}
+		}
+	}
+	provider_check_api_provider__name__check_post: {
+		parameters: {
+			query?: {
+				model?: string
+			}
+			header?: never
+			path: {
+				name: string
+			}
+			cookie?: never
+		}
+		requestBody?: never
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown
+				}
+				content: {
+					'application/json': components['schemas']['CheckOut']
+				}
+			}
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown
+				}
+				content: {
+					'application/json': components['schemas']['HTTPValidationError']
+				}
+			}
+		}
+	}
+	intake_text_api_intake_text_post: {
+		parameters: {
+			query?: never
+			header?: never
+			path?: never
+			cookie?: never
+		}
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['TextIn']
+			}
+		}
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown
+				}
+				content: {
+					'application/json': components['schemas']['UploadOut']
+				}
+			}
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown
+				}
+				content: {
+					'application/json': components['schemas']['HTTPValidationError']
+				}
+			}
+		}
+	}
+	workspace_rules_api_workspace_rules_post: {
+		parameters: {
+			query?: never
+			header?: never
+			path?: never
+			cookie?: never
+		}
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['RulesIn']
 			}
 		}
 		responses: {

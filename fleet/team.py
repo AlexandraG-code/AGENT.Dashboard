@@ -13,10 +13,13 @@ import json
 import re
 from dataclasses import replace
 
-from .config import DATA, MODELS, PROJECTS, ROLES, Role
+from .config import DATA, MODELS, PROJECTS, PROVIDERS, ROLES, Model, Provider, Role
 
 FILE = DATA / "team.json"
 FIELDS = ("model", "thinking", "max_tokens", "temperature", "fallback", "description")
+PROVIDER_FIELDS = ("title", "base_url", "auth", "key_env", "verify_ssl", "headers", "send_thinking")
+MODEL_FIELDS = ("provider", "price_in", "price_in_cached", "price_out", "concurrency", "vision", "title")
+AUTH_KINDS = ("bearer", "api-key", "gigachat")
 
 _mtime = -1.0
 
@@ -30,6 +33,12 @@ def _dump() -> dict:
         "projects": dict(PROJECTS),
         "roles": {
             name: {f: getattr(role, f) for f in FIELDS} for name, role in ROLES.items()
+        },
+        "providers": {
+            name: {f: getattr(p, f) for f in PROVIDER_FIELDS} for name, p in PROVIDERS.items()
+        },
+        "models": {
+            name: {f: getattr(m, f) for f in MODEL_FIELDS} for name, m in MODELS.items()
         },
     }
 
@@ -59,6 +68,21 @@ def sync() -> None:
     if projects:
         PROJECTS.clear()
         PROJECTS.update(projects)
+
+    stored_providers = data.get("providers") or {}
+    if stored_providers:
+        PROVIDERS.clear()
+        for name, cfg in stored_providers.items():
+            PROVIDERS[name] = Provider(name=name, title=cfg.get("title", name),
+                                       base_url=cfg.get("base_url", ""),
+                                       **{f: cfg[f] for f in PROVIDER_FIELDS
+                                          if f in cfg and f not in ("title", "base_url")})
+
+    stored_models = data.get("models") or {}
+    if stored_models:
+        MODELS.clear()
+        for name, cfg in stored_models.items():
+            MODELS[name] = Model(id=name, **{f: cfg[f] for f in MODEL_FIELDS if f in cfg})
 
     roles = data.get("roles") or {}
     if roles:
@@ -131,4 +155,82 @@ def delete_project(project_id: str) -> None:
     if project_id not in PROJECTS:
         raise KeyError(f"Нет пространства {project_id!r}")
     del PROJECTS[project_id]
+    save()
+
+
+def set_provider(name: str, **fields) -> Provider:
+    """Завести или изменить провайдера. Ключ сюда не передаётся — он в secrets."""
+    sync()
+    slug = _slug(name)
+    if not slug:
+        raise ValueError("Пустое имя провайдера")
+    auth = fields.get("auth", "bearer")
+    if auth not in AUTH_KINDS:
+        raise ValueError(f"Неизвестный способ авторизации {auth!r}. Доступны: {', '.join(AUTH_KINDS)}")
+    base_url = str(fields.get("base_url", "")).strip().rstrip("/")
+    if not base_url.startswith(("http://", "https://")):
+        raise ValueError("Адрес должен начинаться с http:// или https://")
+
+    base = PROVIDERS.get(slug)
+    PROVIDERS[slug] = Provider(
+        name=slug,
+        title=str(fields.get("title") or (base.title if base else slug)),
+        base_url=base_url,
+        auth=auth,
+        key_env=str(fields.get("key_env", base.key_env if base else "")),
+        verify_ssl=bool(fields.get("verify_ssl", base.verify_ssl if base else True)),
+        headers=dict(fields.get("headers") or (base.headers if base else {})),
+        send_thinking=bool(fields.get("send_thinking", base.send_thinking if base else False)),
+        builtin=base.builtin if base else False,
+    )
+    save()
+    return PROVIDERS[slug]
+
+
+def delete_provider(name: str) -> None:
+    sync()
+    if name not in PROVIDERS:
+        raise KeyError(f"Нет провайдера {name!r}")
+    used = [m for m, model in MODELS.items() if model.provider == name]
+    if used:
+        raise ValueError(f"На провайдере висят модели: {', '.join(used)}. Сначала убери их.")
+    del PROVIDERS[name]
+    save()
+
+
+def set_model(model_id: str, **fields) -> Model:
+    """Завести или изменить модель. Идентификатор — то, что уходит в поле model запроса."""
+    sync()
+    ident = (model_id or "").strip()
+    if not ident:
+        raise ValueError("Пустой идентификатор модели")
+    provider_name = str(fields.get("provider", ""))
+    if provider_name not in PROVIDERS:
+        raise ValueError(f"Нет провайдера {provider_name!r}. Сначала заведи его.")
+
+    base = MODELS.get(ident)
+    MODELS[ident] = Model(
+        id=ident,
+        provider=provider_name,
+        price_in=float(fields.get("price_in", base.price_in if base else 0.0)),
+        price_in_cached=float(fields.get("price_in_cached", base.price_in_cached if base else 0.0)),
+        price_out=float(fields.get("price_out", base.price_out if base else 0.0)),
+        concurrency=max(1, int(fields.get("concurrency", base.concurrency if base else 3))),
+        vision=bool(fields.get("vision", base.vision if base else False)),
+        title=str(fields.get("title", base.title if base else "")),
+    )
+    save()
+    return MODELS[ident]
+
+
+def delete_model(model_id: str) -> None:
+    sync()
+    if model_id not in MODELS:
+        raise KeyError(f"Нет модели {model_id!r}")
+    used = [r for r, role in ROLES.items() if model_id in (role.model, role.fallback)]
+    if used:
+        raise ValueError(f"Модель занята агентами: {', '.join(used)}. Сначала переведи их.")
+    if len(MODELS) <= 1:
+        raise ValueError("Нельзя удалить последнюю модель")
+    del MODELS[model_id]
     save()

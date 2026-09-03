@@ -49,9 +49,7 @@ export function ProviderLimits({ models, stats, balance }: ProviderLimitsProps) 
 					>
 						<dl className="mt-3 grid grid-cols-2 gap-3 font-mono text-sm tabular-nums">
 							<div>
-								<dt className="font-sans text-[11px] tracking-wide text-slate-400 uppercase">
-									остаток
-								</dt>
+								<dt className="font-sans text-xs tracking-wide text-slate-400 uppercase">остаток</dt>
 								<dd className={paid ? 'text-emerald-400' : 'text-slate-300'}>
 									{paid
 										? balance === null
@@ -61,21 +59,17 @@ export function ProviderLimits({ models, stats, balance }: ProviderLimitsProps) 
 								</dd>
 							</div>
 							<div>
-								<dt className="font-sans text-[11px] tracking-wide text-slate-400 uppercase">
+								<dt className="font-sans text-xs tracking-wide text-slate-400 uppercase">
 									потрачено всего
 								</dt>
 								<dd>{money(slot.cost)}</dd>
 							</div>
 							<div>
-								<dt className="font-sans text-[11px] tracking-wide text-slate-400 uppercase">
-									вызовов
-								</dt>
+								<dt className="font-sans text-xs tracking-wide text-slate-400 uppercase">вызовов</dt>
 								<dd>{slot.calls}</dd>
 							</div>
 							<div>
-								<dt className="font-sans text-[11px] tracking-wide text-slate-400 uppercase">
-									токенов
-								</dt>
+								<dt className="font-sans text-xs tracking-wide text-slate-400 uppercase">токенов</dt>
 								<dd>
 									{tokens(slot.tin)}→{tokens(slot.tout)}
 								</dd>

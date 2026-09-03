@@ -2,21 +2,27 @@
 
 import { useEffect, useState } from 'react'
 
+import { tokens } from '@/shared/lib/format'
 import { useFleetStore, useStats } from '@/shared/model'
 import { Tabs } from '@/shared/ui/Tabs'
 import { CallDetails, CallFeed } from '@/widgets/call-feed'
 import { AgentEditor } from '@/widgets/agent-editor'
 import { ClaudeUsage } from '@/widgets/claude-usage'
 import { ProviderLimits } from '@/widgets/provider-limits'
+import { ModelRegistry, ProviderRegistry } from '@/widgets/model-registry'
 import { RunTask } from '@/widgets/run-task'
 import { StatsOverview } from '@/widgets/stats-overview'
+import { UiSettings } from '@/widgets/ui-settings'
 import { WorkspaceContext } from '@/widgets/workspace-context'
+import { WorkspaceManager } from '@/widgets/workspace-manager'
 
 const TABS = [
 	{ id: 'overview', label: 'Обзор' },
 	{ id: 'feed', label: 'Лента' },
 	{ id: 'run', label: 'Запуск' },
 	{ id: 'agents', label: 'Агенты' },
+	{ id: 'models', label: 'Модели' },
+	{ id: 'spaces', label: 'Пространства' },
 	{ id: 'context', label: 'Контекст' }
 ]
 
@@ -46,14 +52,16 @@ export default function DashboardPage() {
 							<i />
 						</div>
 					</div>
-					<h1 className="text-[15px] font-semibold tracking-wide">
+					<h1 className="text-base font-semibold tracking-wide">
 						AGENT<span className="text-emerald-400">.</span>Dashboard
 					</h1>
 				</div>
 
 				<div className="grow" />
 
-				<label className="text-[11px] tracking-wide text-slate-400 uppercase" htmlFor="project">
+				<UiSettings />
+
+				<label className="text-xs tracking-wide text-slate-400 uppercase" htmlFor="project">
 					пространство
 				</label>
 				<select
@@ -93,7 +101,51 @@ export default function DashboardPage() {
 				{tab === 'feed' && <CallFeed onSelect={setOpenCall} />}
 				{tab === 'run' && <RunTask roles={state?.roles ?? []} project={project} />}
 				{tab === 'agents' && (
-					<AgentEditor roles={state?.roles ?? []} models={state?.models ?? {}} onChanged={load} />
+					<div className="flex flex-col gap-3">
+						{/* Claude в списке ролей отсутствует намеренно: он не ходит через флот,
+						    но команда без него не читается — поэтому он показан отдельно. */}
+						<div className="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10 backdrop-blur-xl">
+							<div className="flex flex-wrap items-baseline gap-x-3">
+								<h3 className="text-base font-semibold text-slate-100">
+									Claude Code — главный архитектор
+								</h3>
+								<span className="font-mono text-xs text-slate-400">
+									{Object.keys(stats?.claude.models ?? {}).join(', ') || 'claude'}
+								</span>
+								<span className="text-xs text-slate-400">внешний участник</span>
+							</div>
+							<p className="mt-2 text-sm text-slate-400">
+								Раздаёт задачи, проверяет и применяет результат. Его настройки и промпт живут не здесь,
+								а в самом Claude Code: файл CLAUDE.md проекта, правила в .claude/rules и его память.
+								Здесь он показан, чтобы состав команды был виден целиком, а расход — на вкладке «Обзор».
+							</p>
+							{stats?.claude.available && (
+								<p className="mt-2 font-mono text-xs text-slate-400 tabular-nums">
+									{stats.claude.total.calls} ответов · вход {tokens(stats.claude.total.tokens_in)} ·
+									выход {tokens(stats.claude.total.tokens_out)}
+								</p>
+							)}
+						</div>
+						<AgentEditor roles={state?.roles ?? []} models={state?.models ?? {}} onChanged={load} />
+					</div>
+				)}
+				{tab === 'models' && (
+					<div className="flex flex-col gap-3">
+						<ProviderRegistry providers={state?.providers ?? []} onChanged={load} />
+						<ModelRegistry
+							models={state?.models ?? {}}
+							providers={state?.providers ?? []}
+							onChanged={load}
+						/>
+					</div>
+				)}
+				{tab === 'spaces' && (
+					<WorkspaceManager
+						projects={state?.projects ?? []}
+						project={project}
+						onProjectChange={setProject}
+						onChanged={load}
+					/>
 				)}
 				{tab === 'context' && (
 					<WorkspaceContext
@@ -101,7 +153,6 @@ export default function DashboardPage() {
 						projects={state?.projects ?? []}
 						project={project}
 						onProjectChange={setProject}
-						onChanged={load}
 					/>
 				)}
 				<CallDetails callId={openCall} onClose={() => setOpenCall(null)} />

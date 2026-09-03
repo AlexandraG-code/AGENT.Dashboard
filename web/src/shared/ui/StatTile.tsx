@@ -18,7 +18,7 @@ const toneClasses: Record<NonNullable<StatTileProps['tone']>, string> = {
 export function StatTile({ label, value, hint, tone = 'neutral' }: StatTileProps) {
 	return (
 		<div className="rounded-xl bg-white/5 p-3 ring-1 ring-white/10 backdrop-blur">
-			<div className="text-[11px] tracking-wide text-slate-400 uppercase">{label}</div>
+			<div className="text-xs tracking-wide text-slate-400 uppercase">{label}</div>
 			<div className={cn('font-mono text-2xl tabular-nums', toneClasses[tone])}>{value}</div>
 			{hint ? <div className="mt-1 text-xs text-slate-500">{hint}</div> : null}
 		</div>

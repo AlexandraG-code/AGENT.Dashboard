@@ -20,8 +20,8 @@ from typing import Any
 
 import httpx
 
-from . import log, transcript
-from .config import MODELS, Model
+from . import log, providers, transcript
+from .config import MODELS, Model, provider as get_provider
 
 
 class FleetError(RuntimeError):
@@ -60,7 +60,10 @@ def _payload(model: Model, messages: list[dict], thinking: bool, max_tokens: int
         "temperature": temperature,
     }
     # Оба провайдера понимают этот ключ; выключение экономит выходные токены.
-    body["thinking"] = {"type": "enabled" if thinking else "disabled"}
+    # Параметр понимают GLM и DeepSeek; сторонним OpenAI-совместимым эндпоинтам
+    # (Yandex, GigaChat) лишнее поле ломает запрос, поэтому оно опционально.
+    if get_provider(model.provider).send_thinking:
+        body["thinking"] = {"type": "enabled" if thinking else "disabled"}
     return body
 
 
@@ -88,19 +91,18 @@ def call(
     if model is None:
         raise FleetError(f"Неизвестная модель: {model_id}")
 
-    url = f"{model.provider.base_url}/chat/completions"
+    provider = get_provider(model.provider)
     started = time.monotonic()
     try:
-        resp = httpx.post(
-            url,
-            headers={
-                "Authorization": f"Bearer {model.provider.api_key}",
-                "Content-Type": "application/json",
-            },
-            json=_payload(model, messages, thinking,
-                          _budget(max_tokens, thinking, _headroom), temperature),
-            timeout=timeout,
-        )
+        # Клиент на запрос, а не глобальный: у провайдеров разная проверка TLS
+        # (у GigaChat цепочка подписана НУЦ Минцифры и системным хранилищем не берётся).
+        with httpx.Client(timeout=timeout, verify=provider.verify_ssl) as http:
+            resp = http.post(
+                providers.chat_url(provider),
+                headers=providers.headers(provider),
+                json=_payload(model, messages, thinking,
+                              _budget(max_tokens, thinking, _headroom), temperature),
+            )
         data = resp.json()
     except Exception as exc:  # сеть, таймаут, невалидный json
         log.emit("error", role=role, model=model_id, project=project, error=str(exc)[:400])

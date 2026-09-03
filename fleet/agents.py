@@ -11,7 +11,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from . import client, context, log, roles, web
+from . import client, context, log, repo_rules, roles, web
 from .config import MODELS
 
 
@@ -242,3 +242,45 @@ def intake(project: str, file_path: str, question: str = "") -> dict:
     log.emit("intake", project=project, name=path.name, kind=kind, cost=a.cost)
     return {"kind": kind, "note": note, "model": a.model, "cost": a.cost,
             "source": path.name}
+
+
+def digest_text(project: str, text: str, question: str = "", source: str = "") -> dict:
+    """Сжать вставленный кусок (лог, код, переписку) в черновик заметки контекста."""
+    task = (question.strip() + "\n\n" if question.strip() else "") + INTAKE_RULES
+    head = f"# Материал: {source}\n\n" if source else ""
+    a = ask("condenser", f"{task}\n\n{head}{text[:60000]}", project, retrieve=False, max_tokens=4000)
+    note = (f"# {source or 'Вставленный текст'}\n\n"
+            f"_Разобрано {time.strftime('%d.%m.%Y')} · текст · {a.model}._\n\n"
+            f"{a.text.strip()}\n")
+    log.emit("intake", project=project, name=source or "текст", kind="текст", cost=a.cost)
+    return {"kind": "текст", "note": note, "model": a.model, "cost": a.cost,
+            "source": source or "вставленный текст"}
+
+
+def rules_from_repo(project: str, repo: str, compress: bool = True) -> dict:
+    """Забрать правила из репозитория проекта в черновик _rules.md.
+
+    Ходит в рабочее дерево главный (Claude или человек через дашборд), а не
+    агенты: у них нет доступа к диску, и это правильно — правила должны попадать
+    в контекст осознанно, а не как побочный эффект чужого запроса.
+    """
+    text, sources = repo_rules.joined(repo)
+    listing = "\n".join(f"- {name}" for name in sources)
+    if not compress:
+        note = (f"# Правила проекта\n\n_Взято из {repo}:_\n{listing}\n\n{text}\n")
+        return {"note": note, "sources": sources, "model": "", "cost": 0.0, "chars": len(text)}
+
+    a = ask(
+        "condenser",
+        "Сведи правила проекта в короткий свод для других агентов.\n"
+        "Оставь то, что меняет их работу: стек, команды, соглашения по коду и стилю, запреты, "
+        "границы архитектуры, требования к тестам и коммитам.\n"
+        "Формат — markdown со списками, без воды и без пересказа очевидного.\n"
+        "Не выдумывай: чего в исходниках нет, того не пиши.\n\n" + text,
+        project, retrieve=False, max_tokens=4000,
+    )
+    note = (f"# Правила проекта\n\n"
+            f"_Собрано {time.strftime('%d.%m.%Y')} из {repo} ({a.model}):_\n{listing}\n\n"
+            f"{a.text.strip()}\n")
+    log.emit("rules_import", project=project, repo=repo, files=len(sources), cost=a.cost)
+    return {"note": note, "sources": sources, "model": a.model, "cost": a.cost, "chars": len(text)}

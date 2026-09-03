@@ -1,9 +1,12 @@
 import type {
 	CallOut,
+	CheckOut,
 	ContextOut,
 	CouncilOut,
 	EventsOut,
+	ModelIn,
 	ProjectIn,
+	ProviderIn,
 	RoleIn,
 	RunOut,
 	SavedOut,
@@ -57,6 +60,25 @@ export const fleetApi = {
 
 	saveProject: (body: ProjectIn) => request<SavedOut>('/api/project', json(body)),
 	deleteProject: (id: string) => request<SavedOut>(`/api/project/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+
+	saveProvider: (body: ProviderIn) => request<SavedOut>('/api/provider', json(body)),
+	deleteProvider: (name: string) =>
+		request<SavedOut>(`/api/provider/${encodeURIComponent(name)}`, { method: 'DELETE' }),
+
+	checkProvider: (name: string, model = '') =>
+		request<CheckOut>(
+			`/api/provider/${encodeURIComponent(name)}/check${model ? `?model=${encodeURIComponent(model)}` : ''}`,
+			{ method: 'POST' }
+		),
+
+	saveModel: (body: ModelIn) => request<SavedOut>('/api/model', json(body)),
+	deleteModel: (id: string) => request<SavedOut>(`/api/model?id=${encodeURIComponent(id)}`, { method: 'DELETE' }),
+
+	intakeText: (project: string, text: string, question: string, source: string) =>
+		request<UploadOut>('/api/intake/text', json({ project, text, question, source })),
+
+	importRules: (project: string, repo: string, compress: boolean) =>
+		request<UploadOut>('/api/workspace/rules', json({ project, repo, compress })),
 
 	context: (project: string) => request<ContextOut>(`/api/context/${encodeURIComponent(project)}`),
 	saveNote: (project: string, name: string, text: string) =>

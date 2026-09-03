@@ -14,6 +14,10 @@ from . import team
 from .config import CONTEXT_DIR, PROJECTS
 
 CORE = "_core.md"
+# Правила и соглашения проекта. Держатся отдельно от описания: описание меняется
+# редко, правила пополняются по ходу работы, а в промпт нужны оба и всегда.
+RULES = "_rules.md"
+ALWAYS = (CORE, RULES)
 
 
 def project_dir(project: str) -> Path:
@@ -26,21 +30,29 @@ def project_dir(project: str) -> Path:
 
 
 def files(project: str) -> list[Path]:
-    """Все заметки проекта, _core.md первым, остальные по алфавиту."""
+    """Все заметки проекта: сначала постоянные, затем остальные по алфавиту."""
     d = project_dir(project)
-    rest = sorted(p for p in d.glob("*.md") if p.name != CORE)
-    core = d / CORE
-    return ([core] if core.exists() else []) + rest
+    rest = sorted(p for p in d.glob("*.md") if p.name not in ALWAYS)
+    always = [d / name for name in ALWAYS if (d / name).exists()]
+    return always + rest
 
 
 def stable_prefix(project: str) -> str:
-    """Неизменный блок контекста проекта. Обязан быть детерминированным."""
-    core = project_dir(project) / CORE
-    body = core.read_text(encoding="utf-8").strip() if core.exists() else ""
-    header = f"# Контекст проекта: {PROJECTS[project]}"
-    if not body:
-        return f"{header}\n\n(Постоянный контекст ещё не заполнен — см. {CORE}.)"
-    return f"{header}\n\n{body}"
+    """Неизменный блок контекста проекта. Обязан быть детерминированным.
+
+    Порядок файлов фиксирован: префикс идёт в кэш провайдера побайтово, и любая
+    перестановка обнуляет попадания (у DeepSeek кэш дешевле промаха в 50 раз).
+    """
+    d = project_dir(project)
+    parts = [f"# Контекст проекта: {PROJECTS[project]}"]
+    for name, title in ((CORE, "Описание и цели"), (RULES, "Правила и соглашения")):
+        path = d / name
+        body = path.read_text(encoding="utf-8").strip() if path.exists() else ""
+        if body:
+            parts.append(f"## {title}\n\n{body}")
+    if len(parts) == 1:
+        parts.append(f"(Постоянный контекст ещё не заполнен — см. {CORE}.)")
+    return "\n\n".join(parts)
 
 
 def _score(text: str, terms: list[str]) -> int:
@@ -59,8 +71,8 @@ def search(project: str, query: str, limit: int = 4, chunk: int = 1800) -> list[
         return []
     hits: list[dict] = []
     for path in files(project):
-        if path.name == CORE:
-            continue  # ядро и так в префиксе, дублировать незачем
+        if path.name in ALWAYS:
+            continue  # постоянный блок и так в префиксе, дублировать незачем
         text = path.read_text(encoding="utf-8", errors="ignore")
         # Режем по заголовкам, чтобы вернуть осмысленный кусок, а не обрывок.
         parts = re.split(r"\n(?=#{1,3} )", text) or [text]

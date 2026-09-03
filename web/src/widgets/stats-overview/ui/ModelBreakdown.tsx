@@ -53,7 +53,7 @@ export function ModelBreakdown({ models, colors }: ModelBreakdownProps) {
 								title={`выход ${tokens(stat.tokens_out)} токенов`}
 							/>
 						</div>
-						<div className="mt-1 font-mono text-[11px] text-slate-400 tabular-nums">
+						<div className="mt-1 font-mono text-xs text-slate-400 tabular-nums">
 							вход {tokens(stat.tokens_in)} · выход {tokens(stat.tokens_out)}
 							{stat.tokens_cached > 0 && <> · из кэша {tokens(stat.tokens_cached)}</>}
 						</div>
