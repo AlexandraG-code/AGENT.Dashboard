@@ -13,8 +13,9 @@ from pathlib import Path
 
 import httpx
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.openapi.docs import get_redoc_html
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -30,6 +31,9 @@ from fleet.config import provider as get_provider  # noqa: E402
 app = FastAPI(
     title="AGENT.Dashboard",
     version="1.0.0",
+    # Свой /redoc: встроенный тянет redoc@next с jsdelivr, а этот тег отдаёт 404,
+    # и страница остаётся пустой. Версия здесь пиньтся явно.
+    redoc_url=None,
     description=(
         "API флота агентов. Интерфейс — отдельное приложение на http://localhost:3000, "
         "здесь живёт только API и его описание."
@@ -108,6 +112,16 @@ class NoteIn(BaseModel):
     project: str
     name: str
     text: str
+
+
+REDOC_JS = "https://cdn.jsdelivr.net/npm/redoc@2.5.0/bundles/redoc.standalone.js"
+
+
+@app.get("/redoc", include_in_schema=False)
+def redoc() -> HTMLResponse:
+    """ReDoc с закреплённой версией скрипта."""
+    return get_redoc_html(openapi_url="/openapi.json", title="AGENT.Dashboard — API",
+                          redoc_js_url=REDOC_JS, with_google_fonts=False)
 
 
 @app.get("/", include_in_schema=False)
