@@ -19,7 +19,8 @@
     в репозиториях их нет.
 
 .PARAMETER Path
-    Куда ставить инструмент. По умолчанию — %USERPROFILE%\AGENT.Dashboard.
+    Куда ставить инструмент. По умолчанию — текущая папка, если сессия открыта
+    внутри клона (рядом лежит backend), иначе AGENT.Dashboard в текущей папке.
 
 .PARAMETER DataPath
     Куда класть память. По умолчанию — соседняя папка AGENT.Dashboard.DATA.
@@ -35,7 +36,7 @@
     .\install-windows.ps1 -Path D:\work\AGENT.Dashboard
 #>
 param(
-    [string]$Path = (Join-Path $HOME 'AGENT.Dashboard'),
+    [string]$Path = '',
     [string]$DataPath = '',
     [string]$ToolRepo = 'https://github.com/AlexandraG-code/AGENT.Dashboard.git',
     [string]$DataRepo = 'https://github.com/AlexandraG-code/AGENT.Dashboard.DATA.git',
@@ -43,6 +44,20 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+# Куда ставить, если не сказали ключом. Отсчёт идёт от текущей папки, а не от
+# профиля пользователя: скрипт зовут оттуда, где человек уже работает. Если
+# сессия открыта прямо внутри клона, он узнаёт его по backend и ставит на месте,
+# а не скачивает второй раз в другое место.
+if (-not $Path) {
+    $here = (Get-Location).Path
+    if (Test-Path (Join-Path $here 'backend')) {
+        $Path = $here
+    } else {
+        $Path = Join-Path $here 'AGENT.Dashboard'
+    }
+}
+$Path = [System.IO.Path]::GetFullPath($Path)
 
 function Write-Step($text) { Write-Host "`n== $text" -ForegroundColor Cyan }
 function Write-Ok($text)   { Write-Host "   $text" -ForegroundColor Green }
@@ -52,6 +67,26 @@ function Test-Command($name) {
     return [bool](Get-Command $name -ErrorAction SilentlyContinue)
 }
 
+# Нативные программы пишут в stderr и на штатных ответах: py — «такой версии
+# нет», claude — «сервера fleet в списке нет». При $ErrorActionPreference = 'Stop'
+# PowerShell 5.1 заворачивает любую строку их stderr в NativeCommandError и рвёт
+# скрипт на ровном месте. Поэтому такие вызовы идут отсюда: поток гасится, а
+# ответом служит код возврата, как и задумано у самих программ.
+function Invoke-Native {
+    param(
+        [Parameter(Mandatory)][string]$Exe,
+        [string[]]$Arguments = @()
+    )
+    $previous = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        & $Exe @Arguments 2>&1 | Out-Null
+        return $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previous
+    }
+}
+
 # Питон ищется через лаунчер py: на Windows это единственный способ спросить
 # конкретную версию, не угадывая, что лежит в PATH под именем python. Команда и
 # её аргументы возвращаются отдельно: массив в операторе вызова не разворачивается,
@@ -59,8 +94,7 @@ function Test-Command($name) {
 function Resolve-Python {
     if (Test-Command 'py') {
         foreach ($version in '-3.13', '-3.12', '-3') {
-            & py $version -c 'import sys' 2>$null
-            if ($LASTEXITCODE -eq 0) {
+            if ((Invoke-Native 'py' @($version, '-c', 'import sys')) -eq 0) {
                 return [pscustomobject]@{ Exe = 'py'; Args = @($version) }
             }
         }
@@ -169,8 +203,12 @@ if ($SkipMcp) {
 } else {
     $launcher = Join-Path $backend 'run-mcp.cmd'
     # Регистрация хранится абсолютным путём, поэтому она своя на каждой машине.
-    claude mcp remove fleet -s user 2>$null | Out-Null
-    claude mcp add fleet -s user -- $launcher
+    # Прежняя запись сносится молча: на чистой машине её нет, и claude честно
+    # сообщает об этом в stderr — для нас это не ошибка, а ответ «нечего удалять».
+    Invoke-Native 'claude' @('mcp', 'remove', 'fleet', '-s', 'user') | Out-Null
+    if ((Invoke-Native 'claude' @('mcp', 'add', 'fleet', '-s', 'user', '--', $launcher)) -ne 0) {
+        throw "claude mcp add fleet не отработал. Зарегистрируй сервер руками: claude mcp add fleet -s user -- $launcher"
+    }
     Write-Ok "зарегистрирован: $launcher"
 }
 
