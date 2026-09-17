@@ -1,0 +1,13 @@
+# Пусковые файлы Windows обязаны приезжать с CRLF: cmd.exe спотыкается на
+# переводах строк в стиле unix, а git по умолчанию нормализует их в репозитории.
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# Остальному тексту — переводы строк системы, в репозитории всегда LF.
+*.sh text eol=lf
+*.py text
+*.ts text
+*.tsx text
+*.md text
+*.json text
+*.scss text
