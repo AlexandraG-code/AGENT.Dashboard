@@ -3,6 +3,13 @@
 	flex-wrap: wrap;
 	align-items: flex-end;
 	gap: var(--gap-2);
+
+	// Поля antd несут собственный нижний отступ под сообщение об ошибке, и при
+	// выравнивании по нижнему краю кнопка уезжала ниже полей. Отступ снимаем
+	// здесь: в тулбаре подпись валидации не показывается.
+	:global(.ant-form-item) {
+		margin-bottom: 0;
+	}
 }
 
 .message {
@@ -16,5 +23,5 @@
 }
 
 .success {
-	color: var(--accent);
+	color: var(--ok);
 }

@@ -1,0 +1,19 @@
+// Написано агентом junior (glm-5.3-flash) по ТЗ главного архитектора.
+@use '@/shared/styles/mixins' as *;
+
+// ID моделей — технические строки, копируются и сравниваются глазами
+.id {
+	@include mono;
+	font-size: 0.85rem;
+}
+
+// Уже заведённая модель выделяется фоном, чтобы не дублировать при регистрации
+.registered {
+	background: color-mix(in oklab, var(--ok) 10%, transparent);
+}
+
+// Второстепенный текст заметки, не должен конкурировать с основными данными
+.note {
+	color: var(--text-dim);
+	font-size: 0.8rem;
+}

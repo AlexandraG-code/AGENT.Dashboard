@@ -16,6 +16,9 @@ interface IDailySpendProps {
  * Расход по дням. Серия одна, поэтому легенды нет — её заменяет заголовок панели;
  * подписана только вершина, иначе график превращается в таблицу.
  *
+ * День без расхода остаётся без полосы: обрубок в пару процентов читался как
+ * «немного потратили», хотя потрачено ноль.
+ *
  * @param days — непрерывный ряд дней со стоимостью, вызовами и токенами
  */
 export function DailySpend({ days }: IDailySpendProps) {
@@ -35,7 +38,7 @@ export function DailySpend({ days }: IDailySpendProps) {
 					<div key={day.date} className={styles.column}>
 						<div
 							className={styles.bar}
-							style={{ '--bar-height': `${Math.max(2, (day.cost / peak) * 100)}%` } as React.CSSProperties}
+							style={{ '--bar-height': `${day.cost > 0 ? Math.max(3, (day.cost / (peak || 1)) * 100) : 0}%` } as React.CSSProperties}
 						/>
 						<span className={styles.tip}>
 							<b>{day.date}</b>{' '}

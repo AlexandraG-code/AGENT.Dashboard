@@ -1,0 +1,39 @@
+// файл: frontend/src/widgets/fleet-activity/ui/JobChat.module.scss
+// Написано агентом junior (glm-5.3-flash) по ТЗ главного архитектора.
+@use '@/shared/styles/mixins' as *;
+
+.task {
+	margin: 0 0 var(--gap-2);
+	color: var(--text-dim);
+	font-size: 0.85rem;
+}
+
+.step {
+	@include glass(var(--radius-sm));
+	padding: var(--gap-2);
+	margin-bottom: var(--gap-2);
+}
+
+.head {
+	display: flex;
+	align-items: baseline;
+	gap: var(--gap-2);
+	margin-bottom: 0.35rem;
+}
+
+.model {
+	@include mono;
+	font-size: 0.75rem;
+	color: var(--text-mute);
+}
+
+.text {
+	@include mono;
+	margin: 0;
+	font-size: 0.8rem;
+	line-height: 1.6;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+	max-height: 22rem;
+	overflow: auto;
+}

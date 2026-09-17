@@ -82,5 +82,5 @@ def search(query: str, count: int = 6) -> tuple[list[dict], str]:
     raise SearchUnavailable(
         "Бесплатный поиск недоступен (" + "; ".join(errors) + "). "
         "Подними локальный SearXNG: docker run -d -p 8888:8080 searxng/searxng — "
-        "либо воспользуйся встроенным WebSearch самого Claude Code."
+        "либо воспользуйся встроенным поиском того, кто ставит задачу."
     )

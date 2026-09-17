@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { fleetApi, type ProviderOut } from '@/shared/api'
 import { useAction } from '@/shared/lib/useAction'
 
+import { headersToText, textToHeaders } from '../lib/headers'
 import { emptyProvider } from '../lib/presets'
 
 export interface IProviderDraft {
@@ -17,6 +18,8 @@ export interface IProviderDraft {
 	verify_ssl: boolean
 	send_thinking: boolean
 	api_key: string
+	/** Заголовки текстом «Ключ: значение» по строке; в объект превращаются при сохранении. */
+	headers: string
 }
 
 /**
@@ -44,6 +47,7 @@ export function useProviderForm(onChanged: () => Promise<void> | void) {
 			key_env: provider.key_env ?? '',
 			verify_ssl: provider.verify_ssl ?? true,
 			send_thinking: provider.send_thinking ?? false,
+			headers: headersToText(provider.headers ?? {}),
 			// Существующий ключ наружу не отдаётся: пустое поле означает «оставить прежний».
 			api_key: ''
 		})
@@ -56,7 +60,11 @@ export function useProviderForm(onChanged: () => Promise<void> | void) {
 	}
 
 	const save = async () => {
-		await fleetApi.saveProvider({ ...draft, api_key: draft.api_key === '' ? null : draft.api_key })
+		await fleetApi.saveProvider({
+			...draft,
+			api_key: draft.api_key === '' ? null : draft.api_key,
+			headers: textToHeaders(draft.headers)
+		})
 		await onChanged()
 		setSelected(draft.name)
 	}

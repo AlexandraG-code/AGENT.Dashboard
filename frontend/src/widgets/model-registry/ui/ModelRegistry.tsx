@@ -6,7 +6,10 @@ import { useTranslation } from 'react-i18next'
 import type { ModelOut, ProviderOut } from '@/shared/api'
 import { Panel, Toolbar } from '@/shared/ui'
 
+import { CLAUDE_MODEL_PRESETS } from '../lib/presets'
+import { useModelCatalog } from '../model/useModelCatalog'
 import { useModelForm } from '../model/useModelForm'
+import { CatalogTable } from './CatalogTable'
 import { CheckResult } from './CheckResult'
 import { RegistryList } from './RegistryList'
 import styles from './Registry.module.scss'
@@ -29,6 +32,9 @@ interface IModelRegistryProps {
 export function ModelRegistry({ models, providers, onChanged }: IModelRegistryProps) {
 	const { t } = useTranslation()
 	const form = useModelForm(providers[0]?.name ?? '', onChanged)
+	const catalog = useModelCatalog()
+	// Заготовки моделей Claude показываются только когда есть куда их вешать.
+	const claude = providers.find((provider) => provider.auth === 'anthropic')
 
 	return (
 		<Panel title={t('models.title')} subtitle={t('models.subtitle')}>
@@ -36,7 +42,37 @@ export function ModelRegistry({ models, providers, onChanged }: IModelRegistryPr
 				<Button size="small" onClick={form.startNew}>
 					+ {t('models.add')}
 				</Button>
+				{claude !== undefined &&
+					CLAUDE_MODEL_PRESETS.map((preset) => (
+						<Button
+							key={preset.id}
+							size="small"
+							title={t('models.presetClaudeHint')}
+							onClick={() => form.applyPreset(preset, claude.name)}
+						>
+							+ {preset.title}
+						</Button>
+					))}
 			</div>
+
+			<Toolbar status={catalog.busy ? t('models.catalogLoading') : ''} error={catalog.error}>
+				<Button
+					size="small"
+					loading={catalog.busy}
+					disabled={form.draft.provider === ''}
+					onClick={() => catalog.load(form.draft.provider)}
+				>
+					{t('models.catalogButton', { provider: form.draft.provider || '—' })}
+				</Button>
+				<span className={styles.hint}>{t('models.catalogHint')}</span>
+			</Toolbar>
+
+			{catalog.models.length > 0 && (
+				<CatalogTable
+					models={catalog.models}
+					onPick={(id) => form.useCatalogModel(id, catalog.provider)}
+				/>
+			)}
 
 			<RegistryList
 				rows={Object.values(models).map((model) => ({
@@ -47,7 +83,7 @@ export function ModelRegistry({ models, providers, onChanged }: IModelRegistryPr
 						price:
 							(model.price_out ?? 0) > 0
 								? t('common.perMillion', { price: model.price_out })
-								: t('common.free'),
+								: (model.plan ?? '') || t('common.priceUnknown'),
 						concurrency: model.concurrency
 					})
 				}))}
@@ -67,10 +103,13 @@ export function ModelRegistry({ models, providers, onChanged }: IModelRegistryPr
 							onChange={(e) => form.patch('id', e.target.value)}
 						/>
 					</Form.Item>
-					<Form.Item label={t('models.provider')}>
+					<Form.Item label={t('models.provider')} help={t('models.providerHint')}>
 						<Select
 							value={form.draft.provider}
-							onChange={(value) => form.patch('provider', value)}
+							onChange={(value) => {
+								form.patch('provider', value)
+								catalog.clear()
+							}}
 							options={providers.map((provider) => ({ value: provider.name, label: provider.title }))}
 						/>
 					</Form.Item>
@@ -107,6 +146,13 @@ export function ModelRegistry({ models, providers, onChanged }: IModelRegistryPr
 							max={100}
 							value={form.draft.concurrency}
 							onChange={(value) => form.patch('concurrency', value ?? 3)}
+						/>
+					</Form.Item>
+					<Form.Item label={t('models.plan')} help={t('models.planHint')} className={styles.wide}>
+						<Input
+							value={form.draft.plan}
+							placeholder={t('models.planPlaceholder')}
+							onChange={(e) => form.patch('plan', e.target.value)}
 						/>
 					</Form.Item>
 					<Form.Item label={t('models.vision')}>

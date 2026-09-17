@@ -5,6 +5,8 @@
 	align-items: flex-end;
 	gap: 0.35rem;
 	height: 10rem;
+	// Базовая линия: без неё дни с нулевым расходом выглядят как дырка в графике.
+	border-bottom: 1px solid var(--line);
 }
 
 .column {
@@ -23,7 +25,8 @@
 .bar {
 	height: var(--bar-height, 2%);
 	border-radius: 4px 4px 0 0; // скругление только у торца: основание стоит на базовой линии
-	background: var(--info);
+	background: linear-gradient(180deg, var(--accent), color-mix(in oklab, var(--info) 70%, transparent));
+	box-shadow: 0 0 12px -2px color-mix(in oklab, var(--accent) 55%, transparent);
 	transition: filter 0.18s;
 
 	.column:hover & {
@@ -43,6 +46,7 @@
 	border-radius: var(--radius-sm);
 	border: 1px solid var(--line-strong);
 	background: var(--ink-2);
+	box-shadow: var(--shadow);
 	white-space: nowrap;
 	font-size: 0.8rem;
 }

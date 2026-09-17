@@ -1,3 +1,5 @@
+@use '@/shared/styles/mixins' as *;
+
 .layout {
 	display: grid;
 	gap: var(--gap-2);
@@ -24,14 +26,45 @@
 }
 
 .repo {
-	min-width: 18rem;
+	min-width: 20rem;
 	flex: 1;
 }
 
+// Поле с кнопкой обзора занимает всю ширину ячейки: иначе Space.Compact
+// сжимается по содержимому и путь виден огрызком.
+.repoField {
+	display: flex;
+	width: 100%;
+
+	:global(.ant-input) {
+		flex: 1;
+	}
+}
+
+// Ряд выровнен по нижнему краю, поэтому у переключателя не должно быть
+// собственного нижнего отступа — из-за него кнопка «Подтянуть» уезжала вниз.
 .switch {
 	display: flex;
 	align-items: center;
 	gap: 0.5rem;
-	padding-bottom: 1.5rem;
+	height: 2rem;
 	font-size: 0.9rem;
+}
+
+.hint {
+	margin: 0;
+	color: var(--text-dim);
+	font-size: 0.82rem;
+}
+
+// Найденные файлы правил: список путей, моноширинно — их сравнивают глазами.
+.found {
+	@include mono;
+	display: flex;
+	flex-direction: column;
+	gap: 0.15rem;
+	margin: 0;
+	padding: 0 0 0 1rem;
+	font-size: 0.78rem;
+	color: var(--text-dim);
 }

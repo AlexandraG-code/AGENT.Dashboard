@@ -18,14 +18,16 @@ const firaCode = Fira_Code({
 
 export const metadata: Metadata = {
 	title: 'AGENT.Dashboard',
-	description: 'Центр управления флотом ИИ-агентов: расходы, вызовы, роли и контекст проектов'
+	description: 'Центр управления командой ИИ-агентов: расходы, вызовы, роли и контекст проектов'
 }
 
 // Настройки читаемости применяются до первой отрисовки: иначе страница мигает
 // стандартным видом, а при слабом зрении это неприятно вдвойне.
 const APPLY_SETTINGS = `try{var s=JSON.parse(localStorage.getItem('fleet-ui')||'{}');var r=document.documentElement;
 r.style.fontSize=(s.fontSize||17)+'px';r.dataset.weight=s.weight||'medium';r.dataset.contrast=s.contrast||'high';
-r.dataset.surface=s.surface||'glass';r.dataset.font=s.font||'fira';}catch(e){}`
+r.dataset.surface=s.surface||'glass';r.dataset.font=s.font||'fira';r.dataset.motion=s.motion||'neural';
+var b=s.background;if(b){r.style.setProperty('--bg-base',b.base);r.style.setProperty('--bg-glow-1',b.glow1);
+r.style.setProperty('--bg-glow-2',b.glow2);r.style.setProperty('--bg-glow-3',b.glow3);}}catch(e){}`
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
 	return (

@@ -13,9 +13,13 @@ interface IClaudeUsageProps {
 }
 
 /**
- * Расход самого Claude Code — того, кто раздаёт задачи флоту. Цифры берутся из
+ * Расход самого Claude Code — того, кто раздаёт задачи команде. Цифры берутся из
  * журналов его сессий, а не из нашего клиента, поэтому стоимость не показывается:
  * работа идёт по подписке, цены за токен нет, и выдумывать её в отчёте нельзя.
+ *
+ * Окна расхода («за 5 часов», «за неделю») показывают ОБЪЁМ работы, а не остаток
+ * лимита: сколько подписка разрешает, Claude Code наружу не отдаёт, а проценты
+ * от выдуманного потолка — это враньё в отчёте.
  *
  * @param claude — сводка по сессиям Claude Code за окно статистики
  */
@@ -48,6 +52,26 @@ export function ClaudeUsage({ claude }: IClaudeUsageProps) {
 					{ key: 'think', label: t('common.reasoning'), value: tokens(claude.total.tokens_reasoning) }
 				]}
 			/>
+
+			<p className={styles.caption}>{t('claude.windows')}</p>
+			<div className={styles.windows}>
+				{(['h5', 'd7'] as const).map((name) => {
+					const slot = claude.windows?.[name]
+					return (
+						<div key={name} className={styles.window}>
+							<span className={styles.windowLabel}>{t(`claude.window_${name}`)}</span>
+							<span className={styles.windowValue}>
+								{t('claude.usage', {
+									calls: slot?.calls ?? 0,
+									in: tokens(slot?.tokens_in ?? 0),
+									out: tokens(slot?.tokens_out ?? 0)
+								})}
+							</span>
+						</div>
+					)
+				})}
+			</div>
+			<p className={styles.note}>{t('claude.windowsNote')}</p>
 
 			<p className={styles.caption}>{t('claude.byFolder')}</p>
 			<ul className={styles.rows}>

@@ -1,0 +1,119 @@
+// файл: frontend/src/widgets/team-chat/ui/TeamChat.module.scss
+// Написано агентом junior (glm-5.3-flash) по ТЗ главного архитектора.
+@use '@/shared/styles/mixins' as *;
+
+.feed {
+	display: flex;
+	flex-direction: column;
+	gap: var(--gap-2);
+	max-height: 55vh;
+	overflow: auto;
+	padding-right: var(--gap-1);
+}
+
+.message {
+	@include glass(var(--radius-sm));
+	padding: var(--gap-2);
+	border-left: 3px solid transparent;
+}
+
+.human {
+	border-left-color: var(--info);
+	background: color-mix(in oklab, var(--info) 8%, transparent);
+}
+
+.architect {
+	border-left-color: var(--accent);
+	background: color-mix(in oklab, var(--accent) 10%, transparent);
+}
+
+.agent {
+	border-left-color: var(--ok);
+}
+
+.head {
+	display: flex;
+	align-items: baseline;
+	gap: var(--gap-2);
+	margin-bottom: 0.3rem;
+}
+
+.icon {
+	font-size: 1.1rem;
+	line-height: 1;
+}
+
+.model {
+	@include mono;
+	font-size: 0.72rem;
+	color: var(--text-mute);
+}
+
+.time {
+	@include mono;
+	margin-left: auto;
+	font-size: 0.72rem;
+	color: var(--text-mute);
+}
+
+.text {
+	margin: 0;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+	font-size: 0.9rem;
+}
+
+.empty,
+.hint {
+	color: var(--text-dim);
+	font-size: 0.82rem;
+	margin: 0;
+}
+
+.compose {
+	display: flex;
+	gap: var(--gap-2);
+	align-items: flex-end;
+	position: relative;
+
+	> *:first-child {
+		flex: 1;
+	}
+}
+
+.mentions {
+	position: absolute;
+	bottom: 100%;
+	left: 0;
+	z-index: 5;
+	margin-bottom: var(--gap-1);
+	min-width: 14rem;
+	max-height: 12rem;
+	overflow: auto;
+	@include glass(var(--radius-sm));
+	padding: 0.25rem;
+	display: flex;
+	flex-direction: column;
+}
+
+.mention {
+	display: flex;
+	align-items: center;
+	gap: var(--gap-2);
+	width: 100%;
+	padding: 0.35rem 0.5rem;
+	border: 0;
+	border-radius: var(--radius-sm);
+	background: transparent;
+	color: var(--text);
+	text-align: left;
+	cursor: pointer;
+
+	&:hover,
+	&.active {
+		background: var(--surface-3);
+	}
+}
+
+.active {
+}

@@ -7,7 +7,7 @@ Feature-Sliced Design, границы слоёв проверяет steiger.
 
 ```bash
 yarn install
-yarn dev            # http://localhost:3000
+yarn dev            # http://localhost:3001
 ```
 
 `/api/*` проксируется на бэкенд (по умолчанию `http://127.0.0.1:8770`, переопределяется
@@ -16,7 +16,7 @@ yarn dev            # http://localhost:3000
 
 | Команда | Что делает |
 | --- | --- |
-| `yarn dev` | дев-сервер на 3000 |
+| `yarn dev` | дев-сервер на 3001 |
 | `yarn build` | продакшен-сборка с проверкой типов |
 | `yarn generateApi` | типы из `/openapi.json` бэкенда (бэкенд должен быть запущен) |
 | `yarn lint` | ESLint |

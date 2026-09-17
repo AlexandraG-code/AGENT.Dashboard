@@ -1,0 +1,29 @@
+// файл: frontend/src/widgets/fleet-activity/ui/ActivityPanel.module.scss
+// Написано агентом junior (glm-5.3-flash) по ТЗ главного архитектора.
+@use '@/shared/styles/mixins' as *;
+
+.space {
+	margin: 0 0 0.3rem;
+	font-size: 0.9rem;
+	color: var(--text);
+}
+
+.list {
+	list-style: none;
+	margin: 0 0 var(--gap-2);
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0.2rem;
+}
+
+.meta {
+	@include mono;
+	font-size: 0.75rem;
+	color: var(--text-dim);
+}
+
+.empty {
+	color: var(--text-dim);
+	margin: 0;
+}

@@ -1,21 +1,38 @@
 @use '@/shared/styles/mixins' as *;
 
+.wrap {
+	width: 23rem;
+	max-width: 80vw;
+}
+
 .panel {
 	display: flex;
 	flex-direction: column;
 	gap: var(--gap-3);
-	width: 19rem;
 }
 
+// Управление внутри группы тянется на всю ширину: ползунок и переключатели без
+// этого схлопываются в точку, потому что своей ширины у них нет.
 .group {
 	display: flex;
 	flex-direction: column;
 	gap: 0.4rem;
+
+	> * {
+		width: 100%;
+	}
+}
+
+// Кнопка сброса фона не должна растягиваться на всю группу, как переключатели.
+.bgReset {
+	width: auto;
+	align-self: flex-start;
 }
 
 .label {
 	@include caption;
 	display: flex;
+	width: 100%;
 	justify-content: space-between;
 	align-items: baseline;
 }
@@ -25,8 +42,33 @@
 	color: var(--text);
 }
 
+// Стопы градиента: пикер и подпись под ним, чтобы было видно, какой из четырёх
+// цветов правишь — база это или пятно.
+.pickers {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: var(--gap-1);
+	margin-bottom: var(--gap-1);
+}
+
+.picker {
+	width: auto;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.25rem;
+	cursor: pointer;
+}
+
+.pickerLabel {
+	@include caption;
+	font-size: 0.62rem;
+	letter-spacing: 0.04em;
+}
+
 .footer {
 	display: flex;
 	justify-content: space-between;
 	gap: var(--gap-2);
+	margin-top: var(--gap-2);
 }

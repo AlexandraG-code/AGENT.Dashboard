@@ -1,12 +1,15 @@
 'use client'
 
-import { Button, Form, Input, Switch } from 'antd'
+import { FolderOpenOutlined } from '@ant-design/icons'
+import { Button, Form, Input, Select, Space, Switch } from 'antd'
 import { useTranslation } from 'react-i18next'
 
 import type { ProjectOut } from '@/shared/api'
 import { NavList, Panel, Toolbar } from '@/shared/ui'
 
+import { useDirPicker } from '../model/useDirPicker'
 import { CORE_NOTE, RULES_NOTE, useWorkspaceForm } from '../model/useWorkspaceForm'
+import { DirPicker } from './DirPicker'
 import styles from './WorkspaceManager.module.scss'
 
 interface IWorkspaceManagerProps {
@@ -29,6 +32,7 @@ interface IWorkspaceManagerProps {
 export function WorkspaceManager({ projects, project, onProjectChange, onChanged }: IWorkspaceManagerProps) {
 	const { t } = useTranslation()
 	const form = useWorkspaceForm({ projects, project, onProjectChange, onChanged })
+	const picker = useDirPicker()
 
 	return (
 		<div className={styles.layout}>
@@ -59,6 +63,53 @@ export function WorkspaceManager({ projects, project, onProjectChange, onChanged
 							/>
 						</Form.Item>
 					</Form>
+
+					<Form layout="vertical">
+						<Form.Item label={t('spaces.repo')} help={t('spaces.repoHint')}>
+							<Space.Compact className={styles.repoField}>
+								<Input
+									value={form.repo}
+									placeholder="~/проекты/мой-проект"
+									onChange={(e) => form.setRepo(e.target.value)}
+								/>
+								<Button icon={<FolderOpenOutlined />} onClick={() => picker.show(form.repo, 'repo')}>
+									{t('spaces.browse')}
+								</Button>
+							</Space.Compact>
+						</Form.Item>
+						<Form.Item label={t('spaces.dataDir')} help={t('spaces.dataDirHint')}>
+							<Space.Compact className={styles.repoField}>
+								<Input
+									value={form.dataDir}
+									placeholder={t('spaces.dataDirPlaceholder')}
+									onChange={(e) => form.setDataDir(e.target.value)}
+								/>
+								<Button
+									icon={<FolderOpenOutlined />}
+									onClick={() => picker.show(form.dataDir, 'data')}
+								>
+									{t('spaces.browse')}
+								</Button>
+							</Space.Compact>
+						</Form.Item>
+						{form.selected === null && (
+							<Form.Item label={t('spaces.copyTeam')} help={t('spaces.copyTeamHint')}>
+								<Select
+									value={form.copyFrom || undefined}
+									placeholder={t('spaces.copyTeamEmpty')}
+									allowClear
+									onChange={(value: string | undefined) => form.setCopyFrom(value ?? '')}
+									options={projects.map((item) => ({
+										value: item.id,
+										label: item.title.split(' — ')[0]
+									}))}
+								/>
+							</Form.Item>
+						)}
+						<Form.Item label={t('spaces.signCode')} help={t('spaces.signCodeHint')}>
+							<Switch checked={form.signCode} onChange={form.setSignCode} />
+						</Form.Item>
+					</Form>
 				</Panel>
 
 				<Panel title={t('spaces.core')} subtitle={t('spaces.coreHint')}>
@@ -75,26 +126,47 @@ export function WorkspaceManager({ projects, project, onProjectChange, onChanged
 				</Panel>
 
 				<Panel title={t('spaces.rules')} subtitle={t('spaces.rulesHint')}>
-					<Toolbar>
-						<Form.Item
-							label={t('spaces.repo')}
-							help={t('spaces.repoHint')}
-							layout="vertical"
-							className={styles.repo}
-						>
-							<Input
-								value={form.repo}
-								placeholder="/Users/alex/WebstormProjects/мой-проект"
-								onChange={(e) => form.setRepo(e.target.value)}
+					<Form layout="vertical">
+						<Form.Item label={t('spaces.globs')} help={t('spaces.globsHint')}>
+							<Input.TextArea
+								rows={3}
+								value={form.globs}
+								placeholder={t('spaces.globsPlaceholder')}
+								onChange={(e) => form.setGlobs(e.target.value)}
 							/>
 						</Form.Item>
+					</Form>
+					<Toolbar>
+						<Button onClick={() => void form.probe()} disabled={form.repo.trim() === ''}>
+							{t('spaces.probe')}
+						</Button>
+						<span className={styles.hint}>
+							{form.found.length > 0 ? t('spaces.probeFound', { count: form.found.length }) : ''}
+						</span>
+					</Toolbar>
+					{form.found.length > 0 && (
+						<ul className={styles.found}>
+							{form.found.map((file) => (
+								<li key={file}>{file}</li>
+							))}
+						</ul>
+					)}
+					<Toolbar>
+						<Button
+							type="primary"
+							ghost
+							disabled={form.busy || form.repo.trim() === ''}
+							onClick={() => void form.importRules()}
+						>
+							{t('spaces.import')}
+						</Button>
 						<label className={styles.switch}>
 							<Switch checked={form.compress} onChange={form.setCompress} />
 							{t('spaces.compress')}
 						</label>
-						<Button disabled={form.busy || form.repo.trim() === ''} onClick={() => void form.importRules()}>
-							{t('spaces.import')}
-						</Button>
+						<span className={styles.hint}>
+							{form.repo.trim() === '' ? t('spaces.importNeedsRepo') : form.repo}
+						</span>
 					</Toolbar>
 
 					<Form layout="vertical">
@@ -123,6 +195,22 @@ export function WorkspaceManager({ projects, project, onProjectChange, onChanged
 					</Button>
 				</Toolbar>
 			</div>
+
+			<DirPicker
+				open={picker.open}
+				path={picker.path}
+				parent={picker.parent}
+				entries={picker.entries}
+				busy={picker.busy}
+				error={picker.error}
+				onGo={(next) => void picker.go(next)}
+				onPick={(next) => {
+					if (picker.target === 'data') form.setDataDir(next)
+					else form.pickRepo(next)
+					picker.hide()
+				}}
+				onClose={picker.hide}
+			/>
 		</div>
 	)
 }

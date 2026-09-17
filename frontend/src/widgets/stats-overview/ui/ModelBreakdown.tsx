@@ -45,7 +45,7 @@ export function ModelBreakdown({ models, colors }: IModelBreakdownProps) {
 						</span>
 					</div>
 					<MetricBar
-						widthPercent={(totalTokens(stat) / peak) * 100}
+						widthPercent={(totalTokens(stat) / (peak || 1)) * 100}
 						segments={[
 							{
 								key: 'in',

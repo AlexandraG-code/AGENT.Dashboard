@@ -1,6 +1,6 @@
 # Бэкенд AGENT.Dashboard
 
-MCP-сервер флота для Claude Code и HTTP API для интерфейса. Python 3.13, FastAPI, httpx.
+MCP-сервер команды для Claude Code и HTTP API для интерфейса. Python 3.13, FastAPI, httpx.
 Базы данных нет намеренно: журнал — `data/logs/events.jsonl`, память — markdown-файлы,
 транскрипты вызовов — json по файлу на вызов. Всё читается глазами и grep-ом.
 
@@ -25,8 +25,11 @@ claude mcp add fleet -s user -- /путь/к/AGENT.Dashboard/backend/run-mcp.sh
 
 | Файл | Назначение |
 | --- | --- |
-| `fleet/config.py` | провайдеры, модели, роли, проекты — значения по умолчанию |
-| `fleet/team.py` | то же самое, но редактируемое: `data/team.json`, перечитывается по mtime |
+| `fleet/config.py` | типы провайдеров, моделей, ролей и пространств; сами значения — в данных |
+| `fleet/layout.py` | раскладка каталога данных: единственное место с именами файлов |
+| `fleet/paths.py` | пути этой машины: клон репозитория и папка данных проекта |
+| `fleet/team.py` | состав команды пространства и общий реестр провайдеров, чтение по mtime |
+| `fleet/migrate.py` | однократный перенос данных в раскладку «папка на проект» |
 | `fleet/secrets.py` | ключи провайдеров, `data/secrets.json`, наружу не отдаются |
 | `fleet/providers.py` | заголовки авторизации и проверка связи с провайдером |
 | `fleet/client.py` | вызов модели: ретраи, фолбэк, учёт стоимости, запись транскрипта |
@@ -39,7 +42,6 @@ claude mcp add fleet -s user -- /путь/к/AGENT.Dashboard/backend/run-mcp.sh
 | `fleet/server.py` | MCP-инструменты `fleet_*` |
 | `dashboard/app.py` | HTTP API |
 | `dashboard/schemas.py` | схемы ответов — из них генерируются типы фронта и Swagger |
-| `roles/*.md` | системные промпты агентов, перечитываются по mtime |
 
 ## Инструменты MCP
 

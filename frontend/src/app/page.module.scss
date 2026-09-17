@@ -2,6 +2,10 @@
 
 .shell {
 	min-height: 100vh;
+	// Ширину ограничиваем: на широком мониторе таблица во весь экран нечитаема,
+	// глаз теряет строку между колонками.
+	max-width: 1760px;
+	margin: 0 auto;
 }
 
 .header {
@@ -11,12 +15,16 @@
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	gap: var(--gap-3);
-	padding: 0.6rem var(--gap-4);
-	border-bottom: 1px solid var(--line);
-	background: var(--surface);
-	backdrop-filter: blur(var(--blur)) saturate(140%);
-	-webkit-backdrop-filter: blur(var(--blur)) saturate(140%);
+	gap: var(--gap-2) var(--gap-3);
+	padding: 0.75rem var(--pad-x);
+	// Оболочка ограничена по ширине и висит на фоне, поэтому у шапки скруглены
+	// нижние углы: прямой срез читался как обрезанная картинка.
+	border: 1px solid var(--line);
+	border-top: 0;
+	border-radius: 0 0 var(--radius) var(--radius);
+	background: linear-gradient(180deg, rgb(255 255 255 / 0.05), transparent), var(--surface);
+	backdrop-filter: blur(var(--blur)) saturate(150%);
+	-webkit-backdrop-filter: blur(var(--blur)) saturate(150%);
 }
 
 .brand {
@@ -24,7 +32,7 @@
 	align-items: center;
 	gap: 0.7rem;
 	margin: 0;
-	font-size: 1rem;
+	font-size: 1.05rem;
 	font-weight: 600;
 	letter-spacing: 0.02em;
 }
@@ -33,46 +41,27 @@
 	color: var(--accent);
 }
 
-// Ядро флота: 3D-куб на CSS-трансформах, без канваса и библиотек.
-.scene {
-	width: 34px;
-	height: 34px;
-	flex: none;
-	perspective: 240px;
-}
-
-.cube {
-	position: relative;
-	width: 100%;
-	height: 100%;
-	transform-style: preserve-3d;
-	animation: tumble 18s linear infinite;
-
-	i {
-		position: absolute;
-		inset: 0;
-		border: 1px solid rgb(34 197 94 / 0.5);
-		border-radius: 7px;
-		background: linear-gradient(140deg, rgb(34 197 94 / 0.2), rgb(56 189 248 / 0.06));
-		box-shadow: inset 0 0 14px rgb(34 197 94 / 0.18);
-
-		&:nth-child(1) { transform: translateZ(17px); }
-		&:nth-child(2) { transform: rotateY(180deg) translateZ(17px); }
-		&:nth-child(3) { transform: rotateY(90deg) translateZ(17px); }
-		&:nth-child(4) { transform: rotateY(-90deg) translateZ(17px); }
-		&:nth-child(5) { transform: rotateX(90deg) translateZ(17px); }
-		&:nth-child(6) { transform: rotateX(-90deg) translateZ(17px); }
-	}
-}
-
-@keyframes tumble {
-	to {
-		transform: rotateX(360deg) rotateY(720deg);
-	}
+// Знак команды живёт в shared/ui/NeuralGlobe — здесь только его размер в шапке.
+.mark {
+	--globe: 2.3rem;
 }
 
 .spacer {
 	flex: 1;
+}
+
+// Выбор пространства и «Вид» — один блок: между ними нет вертикального разрыва,
+// а на узком экране они переносятся вместе.
+.controls {
+	display: flex;
+	align-items: center;
+	gap: var(--gap-2);
+}
+
+// Обёртка для кнопки процессов: Popover цепляет обработчики к DOM-элементу,
+// а не к своему компоненту, поэтому между ними нужен span.
+.activity {
+	display: inline-flex;
 }
 
 .spaceLabel {
@@ -83,13 +72,31 @@
 	min-width: 12rem;
 }
 
-.tabs {
-	padding: var(--gap-2) var(--gap-4) 0;
+// Полоса вкладок. Селектор вложенный намеренно: стили antd приезжают в <head>
+// позже модуля, и правило из одного класса им проигрывает по порядку.
+.shell .tabs {
+	padding: 0 var(--pad-x) 3rem;
+
+	:global(.ant-tabs-nav) {
+		margin-bottom: var(--gap-3);
+	}
+
+	:global(.ant-tabs-nav::before) {
+		border-bottom-color: var(--line);
+	}
+
+	:global(.ant-tabs-tab) {
+		padding: 0.55rem 0.15rem;
+	}
+
+	// Панели внутри вкладки идут стопкой: без этого соседние карточки слипаются.
+	:global(.ant-tabs-tabpane) {
+		display: flex;
+		flex-direction: column;
+		gap: var(--gap-3);
+	}
 }
 
-.main {
-	display: flex;
-	flex-direction: column;
-	gap: var(--gap-2);
-	padding: var(--gap-2) var(--gap-4) 4rem;
+.alert {
+	margin: var(--gap-2) var(--pad-x) 0;
 }

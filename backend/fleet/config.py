@@ -1,4 +1,4 @@
-"""Конфигурация флота: провайдеры, модели, цены, проекты.
+"""Конфигурация команды: провайдеры, модели, цены, проекты.
 
 Всё, что зависит от тарифа или ключей, живёт здесь — остальной код цен не знает.
 """
@@ -7,17 +7,14 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
-# Раскладка каталогов после разделения на backend/ и frontend/:
-#   <корень>/backend/fleet/config.py — этот файл,
-#   <корень>/backend/roles/*.md      — промпты агентов (часть кода, публичные),
-#   <корень>/data/                   — память флота (отдельный приватный репозиторий).
-# Поэтому data ищется от корня проекта, а roles — от каталога бэкенда.
+# В репозитории инструмента данных нет вообще: всё, что нажито командой —
+# состав, промпты, контекст, летопись — лежит в отдельном приватном клоне
+# (`data/` или путь из FLEET_DATA). Имена файлов внутри знает только
+# `fleet.layout`, здесь — лишь корень.
 BACKEND = Path(__file__).resolve().parent.parent
 HOME = Path(os.environ.get("FLEET_HOME", BACKEND.parent))
 DATA = Path(os.environ.get("FLEET_DATA", HOME / "data"))
-ROLES_DIR = Path(os.environ.get("FLEET_ROLES", BACKEND / "roles"))
 LOG_FILE = DATA / "logs" / "events.jsonl"
-CONTEXT_DIR = DATA / "context"
 
 
 @dataclass
@@ -32,15 +29,15 @@ class Provider:
     name: str
     title: str
     base_url: str
-    # bearer — GLM, DeepSeek, OpenAI-совместимые; api-key — Yandex Cloud;
-    # gigachat — Сбер, там сначала обмен ключа на access_token.
+    # bearer — любой OpenAI-совместимый эндпоинт; api-key — Yandex Cloud;
+    # gigachat — обмен ключа на access_token; anthropic — свой протокол.
     auth: str = "bearer"
     key_env: str = ""
     # У GigaChat цепочка сертификатов подписана НУЦ Минцифры, которого нет в
     # системном хранилище: без этого флага запрос падает на проверке TLS.
     verify_ssl: bool = True
     headers: dict = field(default_factory=dict)
-    # GLM и DeepSeek понимают поле thinking; чужим эндпоинтам оно ломает запрос.
+    # Часть эндпоинтов понимает поле thinking, остальным оно ломает запрос.
     send_thinking: bool = True
     builtin: bool = False
 
@@ -55,13 +52,9 @@ class Provider:
         return key
 
 
-# GLM работает ТОЛЬКО через coding-эндпоинт: обычный /paas/v4 отвечает 1113 (нет баланса).
-PROVIDERS: dict[str, Provider] = {
-    "glm": Provider("glm", "z.ai (GLM)", "https://api.z.ai/api/coding/paas/v4",
-                    key_env="GLM_API_KEY", builtin=True),
-    "deepseek": Provider("deepseek", "DeepSeek", "https://api.deepseek.com",
-                         key_env="DEEPSEEK_API_KEY", builtin=True),
-}
+# Провайдеров заводит человек в дашборде: адреса, ключи и способы авторизации —
+# его данные, а не часть приложения. В коде остаётся только их структура.
+PROVIDERS: dict[str, Provider] = {}
 
 
 def provider(name: str) -> Provider:
@@ -72,17 +65,26 @@ def provider(name: str) -> Provider:
 
 @dataclass(frozen=True)
 class Model:
+    """Модель провайдера: как её звать и почём считать.
+
+    `plan` — короткое человеческое описание тарифа («подписка Coding Plan»,
+    «бесплатная квота на месяц»). Нужно потому, что нулевые цены — это не всегда
+    «бесплатно»: где-то это подписка, где-то месячная квота, а тариф провайдер
+    в API не отдаёт. В расчёте стоимости план не участвует, это текст для человека.
+    """
+
     id: str
     # Имя провайдера, а не объект: модели заводятся из дашборда и хранятся в json.
     provider: str
-    # Цена за 1M токенов в USD. Для GLM ноль: подписка Coding Plan, вызов бесплатен на марже.
+    # Цена за 1M токенов в USD. Ноль означает «по тарифу не считается» — см. plan.
     price_in: float = 0.0
     price_in_cached: float = 0.0
     price_out: float = 0.0
     vision: bool = False
     title: str = ""
-    # Лимит одновременных запросов — из тарифа z.ai / здравого смысла для DeepSeek.
+    # Лимит одновременных запросов — из тарифа провайдера.
     concurrency: int = 3
+    plan: str = ""
 
     def cost(self, tokens_in: int, tokens_out: int, tokens_cached: int = 0) -> float:
         fresh = max(0, tokens_in - tokens_cached)
@@ -93,26 +95,42 @@ class Model:
         ) / 1_000_000
 
 
-# Проверено живыми запросами: остальные имена GLM молча подменяются на эти три.
-MODELS: dict[str, Model] = {
-    "glm-5.3": Model("glm-5.3", "glm", concurrency=5),
-    "glm-5.3-flash": Model("glm-5.3-flash", "glm", concurrency=50),
-    "glm-4.6v": Model("glm-4.6v", "glm", vision=True, concurrency=10),
-    "deepseek-v4-pro": Model(
-        "deepseek-v4-pro", "deepseek", 0.435, 0.003625, 0.87, concurrency=8
-    ),
-    "deepseek-v4-flash": Model(
-        "deepseek-v4-flash", "deepseek", 0.14, 0.0028, 0.28, concurrency=8
-    ),
-    "deepseek-v4-flash-vision-exp": Model(
-        "deepseek-v4-flash-vision-exp", "deepseek", 0.14, 0.0028, 0.28, vision=True, concurrency=4
-    ),
-}
+# Реестр моделей тоже принадлежит человеку: имена, цены и лимиты берутся из
+# дашборда (каталог провайдера подсказывает их одним нажатием).
+MODELS: dict[str, Model] = {}
 
 
 @dataclass
 class Role:
-    """Роль во флоте: какая модель, думает ли она и сколько ей можно."""
+    """Роль в команде: какая модель, думает ли она и сколько ей можно.
+
+    `lead` — главный: тот, кто раздаёт задачи остальным. Он ровно один, и
+    интерфейс поднимает его наверх списка. Флаг нужен потому, что главным
+    может быть кто угодно — Claude Code по подписке, DeepSeek или локальная
+    модель, — и зашивать это в код нельзя.
+
+    `external` — агент работает вне нашего клиента (Claude Code в своём
+    процессе). Вызовов через `fleet.client` у него нет, а промпт лежит в
+    CLAUDE.md рабочего репозитория, где он его и читает.
+
+    `deputy` — заместитель главного: пока главный на месте, работает своей
+    ролью, а когда тот недоступен, принимает его задачи. Внешнего главного
+    (Claude Code в своём процессе) наш клиент вызвать не может в принципе,
+    поэтому его задачи всегда уходят заместителю.
+
+    `icon` — эмодзи-аватар для чата и списков: в ленте из десятка сообщений
+    глаз ловит значок быстрее, чем читает имя роли.
+
+    `prompt` — системный промпт роли. Живёт здесь, а не в файле в репозитории:
+    роль — это настройка пользователя, а не часть приложения.
+
+    `tools` — что роли РАЗРЕШЕНО (см. TOOLS): писать в файлы, искать в интернете.
+    Остальное поведение задаёт системный промпт, а кто чем занят в команде —
+    назначения (см. ASSIGNMENTS), а не флаги на роли.
+
+    `team` — отдел, к которому агент приписан (см. Team). От него зависит, какие
+    регламенты попадут в его системный промпт.
+    """
 
     name: str
     model: str
@@ -121,52 +139,150 @@ class Role:
     temperature: float = 0.3
     fallback: str | None = None
     description: str = ""
-    prompt: str = field(default="", repr=False)
+    lead: bool = False
+    external: bool = False
+    deputy: bool = False
+    icon: str = ""
+    prompt: str = ""
+    tools: list[str] = field(default_factory=list)
+    team: str = ""
 
 
-# Раскладка ролей. Думанье включено только там, где за него платят осмысленно:
-# у senior и opponent оно и есть предмет покупки, у джунов оно жгло бы токены впустую.
-ROLES: dict[str, Role] = {
-    "consultant": Role(
-        "consultant", "glm-5.3", thinking=True, max_tokens=6000,
-        fallback="deepseek-v4-flash",
-        description="Архитектор-консультант: альтернативы, критика решений, ревью подхода",
-    ),
-    "opponent": Role(
-        "opponent", "deepseek-v4-flash", thinking=True, max_tokens=6000,
-        fallback="glm-5.3",
-        description="Оппонент в совете: другая семья моделей, спорит по существу",
-    ),
-    "senior": Role(
-        "senior", "deepseek-v4-pro", thinking=True, max_tokens=12000,
-        fallback="glm-5.3",
-        description="Старший разработчик: сложная логика, рефакторинг, интеграции",
-    ),
-    "junior": Role(
-        "junior", "glm-5.3-flash", thinking=False, max_tokens=6000,
-        fallback="deepseek-v4-flash",
-        description="Джун: простые компоненты, утилиты, рутинные правки",
-    ),
-    "vision": Role(
-        "vision", "glm-4.6v", thinking=False, max_tokens=4000,
-        fallback="deepseek-v4-flash-vision-exp",
-        description="Зрячий аналитик: скриншоты, макеты, диаграммы → текст",
-    ),
-    "analyst": Role(
-        "analyst", "glm-5.3-flash", thinking=False, max_tokens=6000,
-        description="Аналитик данных: логи, метрики, JSON API, аномалии",
-    ),
-    "condenser": Role(
-        "condenser", "glm-5.3-flash", thinking=False, max_tokens=2000, temperature=0.1,
-        description="Сжимает страницы и выдачу поиска до выжимки фактов",
-    ),
+@dataclass
+class Team:
+    """Отдел: группа агентов с общим кругом задач.
+
+    Отделов в пространстве может быть сколько угодно — разработка, безопасность,
+    юристы, — и у каждого свои правила и порядок подчинения. Приложение знает
+    только, что отделы бывают: чем они занимаются и как взаимодействуют,
+    описывает человек в регламентах (см. Document).
+
+    `project` — пространство, которому принадлежит отдел; пустое значение
+    означает отдел, общий для всех пространств.
+    """
+
+    name: str
+    title: str = ""
+    description: str = ""
+    project: str = ""
+
+
+# Область действия регламента. Порядок важен: от общего к частному — в таком
+# виде документы и склеиваются в промпт. Общеорганизационной области нет:
+# команда принадлежит пространству, и «весь флот» шире, чем он сам.
+SCOPES: dict[str, str] = {
+    "space": "всё пространство",
+    "team": "отдел",
 }
 
-# Проекты флота. Одна команда, отдельный контекст на каждый проект.
-PROJECTS: dict[str, str] = {
-    "biqube": "BiQube — рабочий фронтенд: React 18, TS, Vite, antd 5, FSD, zustand",
-    "shaks-site": "SHAKS.Site — личный проект",
-    "shaks-daylik": "SHAKS.Daylik — личный проект",
-    "shaks-llmframework": "SHAKS.LLMFramework — личный проект, фреймворк для LLM",
-    "agent-dashboard": "AGENT.Dashboard — сам флот: MCP-сервер, дашборд, роли (этот репозиторий)",
+
+@dataclass
+class Document:
+    """Регламент: текст, который читают все агенты подходящей области.
+
+    Устав пространства, схема взаимодействия отделов, порядок подчинения внутри
+    отдела — всё это не свойство приложения и не свойство роли, а общий документ.
+    Текст лежит отдельным файлом в `projects/<проект>/charters/<id>.md`:
+    регламенты правят и руками, и загрузкой файла, а держать многостраничный
+    текст внутри json неудобно ни человеку, ни git-у.
+    """
+
+    id: str
+    title: str
+    scope: str = "space"
+    project: str = ""
+    team: str = ""
+    order: int = 0
+
+# Инструменты — единственное, что приложение действительно ДАЁТ роли: право
+# записать ответ в репозиторий и доступ к веб-поиску. Промптом их не выдать,
+# поэтому это флаги у роли.
+TOOLS: dict[str, str] = {
+    "files": "Запись в файлы",
+    "web": "Веб-поиск",
 }
+
+# Назначения — кто в команде делает служебную работу. Это не свойство роли, а
+# выбор человека: одна настройка на всю команду. Код спрашивает «кто у нас
+# сжимает текст», потому что имён ролей он не знает.
+ASSIGNMENTS: dict[str, str] = {
+    "condense": "сжимает длинные тексты",
+    "writer": "ведёт летопись и документы",
+    "propose": "предлагает решение в совете",
+    "oppose": "оспаривает решение в совете",
+    "orchestrate": "разбивает цель на задачи и раздаёт их",
+    "vision": "разбирает картинки",
+    "code": "берётся за код, когда исполнитель не назван",
+}
+
+
+@dataclass
+class Workspace:
+    """Рабочее пространство: контекст одного проекта.
+
+    `repo` — путь к клону репозитория. Он не украшение: по нему пространство
+    узнаётся по рабочему каталогу, и расход Claude Code раскладывается по
+    проектам, а не по именам подпапок. Пустой путь означает пространство без
+    репозитория — тогда остаётся только ручной выбор в дашборде. В файле
+    пространства этого пути нет: он свой на каждой машине и живёт в
+    `paths.local.json` (см. `fleet.paths`), а сюда подставляется при чтении.
+
+    `title` — человеческий алиас: его можно переименовать когда угодно,
+    опознаётся пространство по пути, а не по названию.
+
+    `rule_globs` — маски файлов правил именно этого проекта. Раскладка у всех
+    разная (.claude/rules, .agents/skills, .codex/rules, свои каталоги), поэтому
+    одну зашить в код нельзя; пустой список означает «искать по умолчанию».
+
+    `sign_code` — просить ли агентов помечать написанный код комментарием с ролью
+    и моделью. Человеку это нужно, чтобы видеть, кто писал кусок и чей стиль
+    править; на части проектов такие пометки не нужны, поэтому флаг у каждого
+    пространства свой.
+    """
+
+    title: str
+    repo: str = ""
+    sign_code: bool = True
+    rule_globs: list[str] = field(default_factory=list)
+
+
+# Рабочие пространства. Список не зашит в код: пространства — это папки в
+# клоне данных, и `fleet.team` наполняет этот словарь тем, что нашлось на диске.
+PROJECTS: dict[str, Workspace] = {}
+
+
+def current_dir() -> str:
+    """Рабочий каталог вызова.
+
+    MCP-сервер уходит в свою папку при запуске (`run-mcp.sh`), поэтому `os.getcwd()`
+    здесь врёт: он всегда указывает на backend. Настоящий каталог проекта скрипт
+    кладёт в FLEET_CWD до перехода.
+    """
+    return os.environ.get("FLEET_CWD") or os.getcwd()
+
+
+def workspace_of(path: str) -> str:
+    """Какому пространству принадлежит рабочий каталог. Пусто — ни одному.
+
+    Совпадением считается сам каталог репозитория и всё, что внутри него:
+    работа идёт в подпапках (`backend/`, `src/widgets/...`), а проект у них один.
+    Из нескольких подходящих берётся самый длинный путь — вложенный репозиторий
+    точнее внешнего.
+    """
+    if not path:
+        return ""
+    try:
+        target = Path(path).expanduser().resolve()
+    except OSError:
+        return ""
+    best, best_len = "", -1
+    for name, space in PROJECTS.items():
+        if not space.repo:
+            continue
+        try:
+            root = Path(space.repo).expanduser().resolve()
+        except OSError:
+            continue
+        if (target == root or root in target.parents) and len(str(root)) > best_len:
+            best, best_len = name, len(str(root))
+    return best

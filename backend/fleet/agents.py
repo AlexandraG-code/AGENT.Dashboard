@@ -1,4 +1,4 @@
-"""Слой делегирования: как главный архитектор поручает работу флоту.
+"""Слой делегирования: как главный архитектор поручает работу команде.
 
 Топология — звезда, а не общий чат. Свободная переписка агентов между собой
 жжёт токены и уплывает от задачи, поэтому обсуждение выполняется ЗДЕСЬ,
@@ -11,7 +11,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from . import client, context, log, repo_rules, roles, web
+from . import client, context, log, prompts, repo_rules, roles, team, web
 from .config import MODELS
 
 
@@ -24,15 +24,24 @@ def _messages(role, project: str, task: str, extra: str = "", retrieve: bool = T
         blocks.append(extra)
     blocks.append(f"# Задача\n\n{task}")
     return [
-        {"role": "system", "content": role.prompt},
+        {"role": "system", "content": roles.system(role, project)},
         {"role": "user", "content": "\n\n---\n\n".join(blocks)},
     ]
 
 
-def ask(role_name: str, task: str, project: str = "", extra: str = "",
+def ask(role_name: str, task: str, project: str, extra: str = "",
         retrieve: bool = True, max_tokens: int | None = None) -> client.Answer:
-    """Поручить задачу роли и получить ответ."""
-    role = roles.get(role_name)
+    """Поручить задачу роли и получить ответ.
+
+    Пространство обязательно: команда у каждого проекта своя, и одно и то же
+    имя роли в двух пространствах — это два разных агента с разными промптами.
+    """
+    if not project:
+        raise ValueError("Не указано пространство: состав команды у каждого проекта свой")
+    # Подмена здесь, а не у вызывающих: точек вызова много (чат, фоновые
+    # задачи, MCP-инструменты), и забыть подстановку в одной из них слишком легко.
+    role_name = roles.stand_in(project, role_name)
+    role = roles.get(project, role_name)
     return client.call(
         role.model,
         _messages(role, project, task, extra, retrieve),
@@ -46,14 +55,17 @@ def ask(role_name: str, task: str, project: str = "", extra: str = "",
     )
 
 
-def batch(tasks: list[str], project: str = "", role_name: str = "junior",
+def batch(tasks: list[str], project: str, role_name: str = "",
           extra: str = "") -> list[dict]:
     """Раздать пачку однотипных задач параллельно.
 
-    Смысл в том, что у glm-5.3-flash лимит параллелизма 50 и нулевая цена —
-    десять мелких правок разумно делать одновременно, а не по очереди.
+    Число потоков ограничено параллелизмом модели из её карточки: провайдеры
+    держат разные лимиты, и превышать их бессмысленно — лишние запросы просто
+    встанут в очередь на их стороне.
     """
-    role = roles.get(role_name)
+    # Имя роли не обязательно: если его не назвали, берём того, кто умеет писать код.
+    role = roles.get(project, role_name) if role_name else roles.need(project, "code")
+    role_name = role.name
     workers = min(len(tasks), MODELS[role.model].concurrency, 12)
 
     def one(item: tuple[int, str]) -> dict:
@@ -70,41 +82,44 @@ def batch(tasks: list[str], project: str = "", role_name: str = "junior",
     return sorted(out, key=lambda r: r["n"])
 
 
-def council(topic: str, project: str = "", rounds: int = 2,
+def council(topic: str, project: str, rounds: int = 2,
             extra: str = "") -> dict:
-    """Совет: консультант предлагает, оппонент атакует, консультант отвечает.
+    """Совет: один предлагает решение, другой его атакует, первый отвечает.
 
-    Оппонент намеренно из другой семьи моделей (DeepSeek против GLM): две модели
-    одной семьи ошибаются одинаково и охотно соглашаются друг с другом, а такой
-    совет бесполезен. Наружу уходят позиции и разногласия — решение принимает
-    главный архитектор, а не совет.
+    Участники берутся по навыкам «предлагает» и «оспаривает» — кто именно ими
+    обладает, решает человек в дашборде. Разводить их по разным семействам
+    моделей стоит: модели одной семьи ошибаются одинаково и охотно соглашаются
+    друг с другом, а такой совет бесполезен. Наружу уходят позиции и
+    разногласия — решение принимает тот, кто спрашивал.
     """
+    proposer = roles.need(project, "propose")
+    opposer = roles.need(project, "oppose")
     transcript: list[dict] = []
     cost = 0.0
 
-    proposal = ask("consultant", topic, project, extra)
+    proposal = ask(proposer.name, topic, project, extra)
     cost += proposal.cost
-    transcript.append({"speaker": "consultant", "model": proposal.model,
+    transcript.append({"speaker": proposer.name, "model": proposal.model,
                        "text": proposal.text})
 
     last = proposal.text
     for i in range(max(1, rounds)):
         attack = ask(
-            "opponent",
+            opposer.name,
             f"Разбери предложенное решение и найди, где оно неверно.\n\n"
             f"# Обсуждаемый вопрос\n{topic}\n\n"
             f"# Позиция консультанта\n{last}",
             project, extra, retrieve=False,
         )
         cost += attack.cost
-        transcript.append({"speaker": "opponent", "model": attack.model,
+        transcript.append({"speaker": opposer.name, "model": attack.model,
                            "text": attack.text})
 
         if i == rounds - 1:
             break
 
         reply = ask(
-            "consultant",
+            proposer.name,
             f"Оппонент возразил. Ответь: с чем соглашаешься и меняешь позицию, "
             f"а что отводишь и почему.\n\n"
             f"# Вопрос\n{topic}\n\n# Твоя позиция\n{last}\n\n"
@@ -112,7 +127,7 @@ def council(topic: str, project: str = "", rounds: int = 2,
             project, extra, retrieve=False,
         )
         cost += reply.cost
-        transcript.append({"speaker": "consultant", "model": reply.model,
+        transcript.append({"speaker": proposer.name, "model": reply.model,
                            "text": reply.text})
         last = reply.text
 
@@ -121,22 +136,24 @@ def council(topic: str, project: str = "", rounds: int = 2,
     return {"topic": topic, "transcript": transcript, "cost": round(cost, 5)}
 
 
-def read_page(url: str, question: str = "") -> dict:
+def read_page(project: str, url: str, question: str = "") -> dict:
     """Прочитать страницу и сжать её до выжимки фактов (замена Web-Reader)."""
     text = web.fetch(url)
     q = question or "Изложи содержание страницы по существу."
-    a = ask("condenser", f"{q}\n\n# Текст страницы {url}\n\n{text}", retrieve=False)
+    a = ask(roles.need(project, "condense").name,
+            prompts.render("condense_page", question=q, url=url, text=text),
+            project, retrieve=False)
     return {"url": url, "chars": len(text), "summary": a.text, "cost": a.cost}
 
 
-def research(query: str, project: str = "", pages: int = 3) -> dict:
+def research(query: str, project: str, pages: int = 3) -> dict:
     """Поиск + чтение найденного + сжатие. Роль «второго архитектора, который ищет»."""
     results, backend = web.search(query, count=max(pages + 2, 5))
     read: list[dict] = []
     cost = 0.0
     for item in results[:pages]:
         try:
-            r = read_page(item["url"], question=query)
+            r = read_page(project, item["url"], question=query)
             read.append({"title": item["title"], **r})
             cost += r["cost"]
         except Exception as exc:
@@ -148,10 +165,8 @@ def research(query: str, project: str = "", pages: int = 3) -> dict:
         for r in read
     )
     final = ask(
-        "condenser",
-        f"Сведи материалы источников в один ответ на вопрос.\n"
-        f"Отметь, если источники противоречат друг другу. Сохрани ссылки.\n\n"
-        f"# Вопрос\n{query}\n\n# Материалы\n{joined}",
+        roles.need(project, "condense").name,
+        prompts.render("condense_material", question=query, name="источники", text=joined),
         project, retrieve=False,
     )
     cost += final.cost
@@ -164,7 +179,7 @@ def research(query: str, project: str = "", pages: int = 3) -> dict:
     }
 
 
-def look(image_path: str, question: str = "", project: str = "") -> client.Answer:
+def look(image_path: str, question: str, project: str) -> client.Answer:
     """Показать картинку зрячему аналитику."""
     path = Path(image_path).expanduser()
     if not path.exists():
@@ -172,12 +187,12 @@ def look(image_path: str, question: str = "", project: str = "") -> client.Answe
     mime = mimetypes.guess_type(path.name)[0] or "image/png"
     b64 = base64.b64encode(path.read_bytes()).decode()
 
-    role = roles.get("vision")
+    role = roles.need(project, "vision")
     prefix = context.stable_prefix(project) + "\n\n---\n\n" if project else ""
     return client.call(
         role.model,
         [
-            {"role": "system", "content": role.prompt},
+            {"role": "system", "content": roles.system(role, project)},
             {"role": "user", "content": [
                 {"type": "image_url",
                  "image_url": {"url": f"data:{mime};base64,{b64}"}},
@@ -185,13 +200,13 @@ def look(image_path: str, question: str = "", project: str = "") -> client.Answe
                  "text": prefix + (question or "Опиши изображение по правилам роли.")},
             ]},
         ],
-        role="vision", project=project, thinking=role.thinking,
+        role=role.name, project=project, thinking=role.thinking,
         max_tokens=role.max_tokens, temperature=role.temperature,
         task=f"[изображение] {question[:150]}",
     )
 
 
-# Что флот разбирает сам, без внешних конвертеров.
+# Что команда разбирает сама, без внешних конвертеров.
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"}
 TEXT_SUFFIXES = {
     ".md", ".txt", ".json", ".csv", ".log", ".yml", ".yaml", ".xml", ".html",
@@ -226,7 +241,8 @@ def intake(project: str, file_path: str, question: str = "") -> dict:
         kind = "изображение"
     elif suffix in TEXT_SUFFIXES:
         text = path.read_text(encoding="utf-8", errors="ignore")[:60000]
-        a = ask("condenser", f"{task}\n\n# Материал: {path.name}\n\n{text}",
+        a = ask(roles.need(project, "condense").name,
+                prompts.render("condense_material", question=task, name=path.name, text=text),
                 project, retrieve=False, max_tokens=4000)
         kind = "текст"
     else:
@@ -248,7 +264,9 @@ def digest_text(project: str, text: str, question: str = "", source: str = "") -
     """Сжать вставленный кусок (лог, код, переписку) в черновик заметки контекста."""
     task = (question.strip() + "\n\n" if question.strip() else "") + INTAKE_RULES
     head = f"# Материал: {source}\n\n" if source else ""
-    a = ask("condenser", f"{task}\n\n{head}{text[:60000]}", project, retrieve=False, max_tokens=4000)
+    a = ask(roles.need(project, "condense").name,
+            prompts.render("condense_material", question=task, name=source or "текст", text=head + text[:60000]),
+            project, retrieve=False, max_tokens=4000)
     note = (f"# {source or 'Вставленный текст'}\n\n"
             f"_Разобрано {time.strftime('%d.%m.%Y')} · текст · {a.model}._\n\n"
             f"{a.text.strip()}\n")
@@ -260,23 +278,21 @@ def digest_text(project: str, text: str, question: str = "", source: str = "") -
 def rules_from_repo(project: str, repo: str, compress: bool = True) -> dict:
     """Забрать правила из репозитория проекта в черновик _rules.md.
 
-    Ходит в рабочее дерево главный (Claude или человек через дашборд), а не
+    Ходит в рабочее дерево главный или человек через дашборд, а не
     агенты: у них нет доступа к диску, и это правильно — правила должны попадать
     в контекст осознанно, а не как побочный эффект чужого запроса.
     """
-    text, sources = repo_rules.joined(repo)
+    # Маски правил у каждого пространства свои: раскладка .claude/rules,
+    # .agents/skills или .codex/rules — дело проекта, а не наше.
+    text, sources = repo_rules.joined(repo, team.project_of(project).rule_globs or None)
     listing = "\n".join(f"- {name}" for name in sources)
     if not compress:
         note = (f"# Правила проекта\n\n_Взято из {repo}:_\n{listing}\n\n{text}\n")
         return {"note": note, "sources": sources, "model": "", "cost": 0.0, "chars": len(text)}
 
     a = ask(
-        "condenser",
-        "Сведи правила проекта в короткий свод для других агентов.\n"
-        "Оставь то, что меняет их работу: стек, команды, соглашения по коду и стилю, запреты, "
-        "границы архитектуры, требования к тестам и коммитам.\n"
-        "Формат — markdown со списками, без воды и без пересказа очевидного.\n"
-        "Не выдумывай: чего в исходниках нет, того не пиши.\n\n" + text,
+        roles.need(project, "condense").name,
+        prompts.render("condense_rules", sources=listing, text=text),
         project, retrieve=False, max_tokens=4000,
     )
     note = (f"# Правила проекта\n\n"

@@ -1,9 +1,46 @@
 @use '@/shared/styles/mixins' as *;
 
+.wrap {
+	display: flex;
+	flex-direction: column;
+	gap: var(--gap-2);
+}
+
+// Фильтры журнала: период, поиск и счётчик показанного.
+.filters {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--gap-2);
+}
+
+// Селектор вложенный: стили antd приезжают позже модуля, и правило из одного
+// класса им проигрывает — поле поиска растягивалось на всю строку фильтров.
+.filters .search {
+	flex: none;
+	width: 20rem;
+	max-width: 100%;
+}
+
+.count {
+	@include mono;
+	margin-left: auto;
+	font-size: 0.78rem;
+	color: var(--text-mute);
+}
+
 .feed {
 	@include glass;
 	overflow: hidden;
 	padding: 0;
+}
+
+// Журнал прокручивается внутри панели: иначе тысяча строк растягивает страницу
+// и шапка таблицы уезжает из виду.
+.scroll {
+	max-height: 62vh;
+	overflow: auto;
+	overscroll-behavior: contain;
 }
 
 .row {
@@ -23,6 +60,21 @@
 
 	&:last-child {
 		border-bottom: 0;
+	}
+
+	// Ячейка не растягивает сетку: у служебных событий имя длиннее колонки, и
+	// метка наезжала на соседнюю (роль поверх модели).
+	> * {
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	:global(.ant-tag) {
+		max-width: 100%;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	@media (max-width: 900px) {
@@ -51,7 +103,11 @@
 
 .head {
 	@include caption;
+	position: sticky;
+	top: 0;
+	z-index: 1;
 	background: var(--surface-2);
+	backdrop-filter: blur(var(--blur));
 }
 
 .dim {
@@ -70,7 +126,7 @@
 }
 
 .free {
-	color: var(--accent);
+	color: var(--ok);
 }
 
 .error {

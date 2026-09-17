@@ -45,7 +45,7 @@ export function ProjectBreakdown({ projects, colors, titles }: IProjectBreakdown
 						</span>
 					</div>
 					<MetricBar
-						widthPercent={(stat.cost / peak) * 100}
+						widthPercent={(stat.cost / (peak || 1)) * 100}
 						segments={Object.entries(stat.by_model).map(([model, slot]) => ({
 							key: model,
 							value: slot.tokens_in + slot.tokens_out,

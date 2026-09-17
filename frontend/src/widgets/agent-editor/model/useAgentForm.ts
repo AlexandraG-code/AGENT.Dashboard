@@ -15,22 +15,40 @@ const blank = (model: string): RoleOut => ({
 	max_tokens: 6000,
 	temperature: 0.3,
 	description: '',
-	prompt: ''
+	prompt: '',
+	lead: false,
+	deputy: false,
+	external: false,
+	icon: '🤖',
+	tools: [],
+	team: ''
 })
+
+/** Тип состояния формы: выводится из хука, чтобы не держать список полей дважды. */
+export type IAgentForm = ReturnType<typeof useAgentForm>
 
 /**
  * Состояние редактора агентов: выбор из списка, черновик формы, сохранение и удаление.
  *
+ * @param project — пространство: команда принадлежит ему, а не приложению
  * @param roles — состав команды с бэкенда
  * @param models — реестр моделей для выпадающих списков
  * @param onChanged — перечитать состояние приложения после изменения
  */
-export function useAgentForm(roles: RoleOut[], models: Record<string, ModelOut>, onChanged: () => Promise<void> | void) {
+export function useAgentForm(
+	project: string,
+	roles: RoleOut[],
+	models: Record<string, ModelOut>,
+	onChanged: () => Promise<void> | void
+) {
 	const { t } = useTranslation()
 	const firstModel = Object.keys(models)[0] ?? ''
 
 	const [selected, setSelected] = useState<string | null>(roles[0]?.name ?? null)
 	const [draft, setDraft] = useState<RoleOut>(roles[0] ?? blank(firstModel))
+	// Карточка агента живёт в модалке: список отделов и агентов должен
+	// оставаться на экране, а настройки открываться поверх него.
+	const [open, setOpen] = useState<boolean>(false)
 
 	const patch = <K extends keyof RoleOut>(field: K, value: RoleOut[K]) =>
 		setDraft((prev) => ({ ...prev, [field]: value }))
@@ -42,25 +60,27 @@ export function useAgentForm(roles: RoleOut[], models: Record<string, ModelOut>,
 		setDraft({ ...role, fallback: role.fallback ?? null })
 	}
 
-	const startNew = () => {
+	const startNew = (team: string) => {
 		setSelected(null)
-		setDraft(blank(firstModel))
+		setDraft({ ...blank(firstModel), team })
 	}
 
 	const save = async () => {
 		if (draft.name.trim() === '') throw new Error(t('agents.emptyName'))
-		const saved = await fleetApi.saveRole({ ...draft, fallback: draft.fallback || null })
+		const saved = await fleetApi.saveRole({ ...draft, project, fallback: draft.fallback || null })
 		await onChanged()
 		setSelected(saved.name ?? draft.name)
+		setOpen(false)
 	}
 
 	const remove = async () => {
 		if (selected === null) return
 		if (!window.confirm(t('agents.deleteConfirm', { name: selected }))) return
-		await fleetApi.deleteRole(selected)
+		await fleetApi.deleteRole(project, selected)
 		await onChanged()
 		setSelected(null)
 		setDraft(blank(firstModel))
+		setOpen(false)
 	}
 
 	const saving = useAction(save, t('common.saved'))
@@ -71,6 +91,16 @@ export function useAgentForm(roles: RoleOut[], models: Record<string, ModelOut>,
 		patch,
 		selected,
 		isNew: selected === null,
+		open,
+		edit: (name: string) => {
+			select(name)
+			setOpen(true)
+		},
+		create: (team: string) => {
+			startNew(team)
+			setOpen(true)
+		},
+		close: () => setOpen(false),
 		select,
 		startNew,
 		save: saving.run,

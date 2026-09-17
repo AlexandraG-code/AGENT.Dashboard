@@ -1,0 +1,58 @@
+// файл: frontend/src/widgets/team-chart/ui/TeamChart.module.scss
+// Написано агентом middle (deepseek-v4-pro) по ТЗ главного архитектора.
+@use '@/shared/styles/mixins' as *;
+
+.levels {
+	display: flex;
+	flex-direction: column;
+	gap: var(--gap-3);
+}
+
+.level {
+	@include caption;
+	margin: 0 0 var(--gap-1);
+}
+
+.row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--gap-2);
+}
+
+.role {
+	@include glass(var(--radius-sm));
+	display: flex;
+	align-items: center;
+	gap: var(--gap-2);
+	padding: 0.4rem 0.7rem;
+}
+
+.icon {
+	font-size: 1.1rem;
+	line-height: 1;
+}
+
+.model {
+	@include mono;
+	font-size: 0.75rem;
+	color: var(--text-mute);
+}
+
+.fails {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0.3rem;
+}
+
+.steps {
+	color: var(--text-dim);
+	font-size: 0.85rem;
+}
+
+.empty {
+	color: var(--text-dim);
+	margin: 0;
+}

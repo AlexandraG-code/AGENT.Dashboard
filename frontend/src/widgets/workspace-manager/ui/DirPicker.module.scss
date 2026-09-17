@@ -1,0 +1,69 @@
+@use '@/shared/styles/mixins' as *;
+
+.head {
+	display: flex;
+	align-items: center;
+	gap: var(--gap-2);
+	margin-bottom: var(--gap-2);
+}
+
+.path {
+	@include mono;
+	overflow: hidden;
+	font-size: 0.8rem;
+	color: var(--text-dim);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	// Длинный путь важен хвостом, поэтому обрезаем начало: контейнер разворачиваем,
+	// а сам текст оставляем в своём порядке — иначе ведущий слэш уезжает в конец.
+	direction: rtl;
+	unicode-bidi: plaintext;
+	text-align: left;
+}
+
+.list {
+	display: flex;
+	flex-direction: column;
+	max-height: 50vh;
+	overflow: auto;
+	margin: 0;
+	padding: 0;
+	border: 1px solid var(--line);
+	border-radius: var(--radius-sm);
+	list-style: none;
+}
+
+.row {
+	display: flex;
+	width: 100%;
+	align-items: center;
+	gap: var(--gap-2);
+	padding: 0.45rem 0.7rem;
+	border: 0;
+	border-bottom: 1px solid var(--line);
+	background: transparent;
+	color: var(--text);
+	text-align: left;
+	cursor: pointer;
+	transition: background 0.18s;
+
+	&:hover {
+		background: var(--surface-3);
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: -2px;
+	}
+}
+
+.name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.empty {
+	padding: 0.7rem;
+	color: var(--text-dim);
+}

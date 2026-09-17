@@ -2,6 +2,7 @@
 
 .tile {
 	@include glass(var(--radius-sm));
+	@include edge-light(var(--radius-sm));
 	padding: var(--gap-2) var(--gap-3);
 	display: flex;
 	flex-direction: column;
@@ -25,7 +26,7 @@
 }
 
 .good {
-	color: var(--accent);
+	color: var(--ok);
 }
 .warn {
 	color: var(--warn);

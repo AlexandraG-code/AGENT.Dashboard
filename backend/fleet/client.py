@@ -1,6 +1,9 @@
-"""Единый клиент к GLM и DeepSeek.
+"""Единый клиент к моделям команды.
 
-Оба провайдера OpenAI-совместимы, поэтому клиент один. Важные особенности,
+Основной протокол — OpenAI-совместимый (GLM, DeepSeek, Yandex, GigaChat).
+Claude говорит на своём, поэтому у провайдера с авторизацией `anthropic`
+тело запроса и разбор ответа берутся из `anthropic.py`; всё остальное —
+лимиты, fallback, журнал, стоимость — общее. Важные особенности,
 выясненные живыми запросами:
   * GLM отвечает только через coding-эндпоинт, часть имён моделей молча подменяется;
   * DeepSeek V4 по умолчанию РАЗМЫШЛЯЕТ, и размышления биллятся как выход,
@@ -20,7 +23,7 @@ from typing import Any
 
 import httpx
 
-from . import log, providers, transcript
+from . import anthropic, log, providers, running, transcript
 from .config import MODELS, Model, provider as get_provider
 
 
@@ -53,8 +56,11 @@ class Answer:
 
 def _payload(model: Model, messages: list[dict], thinking: bool, max_tokens: int,
              temperature: float) -> dict:
+    """Тело запроса для OpenAI-совместимого провайдера."""
     body: dict[str, Any] = {
-        "model": model.id,
+        # Имя модели в запросе не всегда равно её идентификатору в реестре:
+        # Yandex ждёт URI с каталогом (см. providers.model_ref).
+        "model": providers.model_ref(get_provider(model.provider), model.id),
         "messages": messages,
         "max_tokens": max_tokens,
         "temperature": temperature,
@@ -70,6 +76,25 @@ def _payload(model: Model, messages: list[dict], thinking: bool, max_tokens: int
 def _budget(max_tokens: int, thinking: bool, headroom: int = REASONING_HEADROOM) -> int:
     """Сколько токенов просить у модели, чтобы ответ пережил размышления."""
     return min(MAX_TOKENS_CAP, max_tokens + (headroom if thinking else 0))
+
+
+def _read(data: dict, requested: str) -> dict:
+    """Ответ OpenAI-совместимого провайдера в полях Answer."""
+    choice = data["choices"][0]["message"]
+    usage = data.get("usage", {}) or {}
+    details = usage.get("completion_tokens_details") or {}
+    cached = usage.get("prompt_cache_hit_tokens") or (
+        usage.get("prompt_tokens_details") or {}
+    ).get("cached_tokens") or 0
+    return {
+        "text": (choice.get("content") or "").strip(),
+        "model": data.get("model", requested),
+        "tokens_in": usage.get("prompt_tokens", 0),
+        "tokens_out": usage.get("completion_tokens", 0),
+        "tokens_cached": cached,
+        "tokens_reasoning": details.get("reasoning_tokens", 0) or 0,
+        "reasoning": (choice.get("reasoning_content") or "").strip(),
+    }
 
 
 def call(
@@ -92,7 +117,10 @@ def call(
         raise FleetError(f"Неизвестная модель: {model_id}")
 
     provider = get_provider(model.provider)
+    claude = provider.auth == "anthropic"
     started = time.monotonic()
+    # Регистрируем до сетевого обращения: упавший вызов тоже должен быть виден в реестре.
+    task_id = running.start("fleet", role, model_id, project, task)
     try:
         # Клиент на запрос, а не глобальный: у провайдеров разная проверка TLS
         # (у GigaChat цепочка подписана НУЦ Минцифры и системным хранилищем не берётся).
@@ -100,12 +128,17 @@ def call(
             resp = http.post(
                 providers.chat_url(provider),
                 headers=providers.headers(provider),
-                json=_payload(model, messages, thinking,
-                              _budget(max_tokens, thinking, _headroom), temperature),
+                json=(
+                    anthropic.payload(model, messages, thinking, _budget(max_tokens, thinking, _headroom))
+                    if claude
+                    else _payload(model, messages, thinking,
+                                  _budget(max_tokens, thinking, _headroom), temperature)
+                ),
             )
         data = resp.json()
     except Exception as exc:  # сеть, таймаут, невалидный json
         log.emit("error", role=role, model=model_id, project=project, error=str(exc)[:400])
+        running.finish(task_id, False, error=str(exc)[:400])
         if fallback:
             return call(fallback, messages, role=role, project=project, thinking=thinking,
                         max_tokens=max_tokens, temperature=temperature, timeout=timeout,
@@ -115,30 +148,15 @@ def call(
     if "error" in data:
         msg = str(data["error"].get("message", data["error"]))[:400]
         log.emit("error", role=role, model=model_id, project=project, error=msg)
+        running.finish(task_id, False, error=msg)
         if fallback:
             return call(fallback, messages, role=role, project=project, thinking=thinking,
                         max_tokens=max_tokens, temperature=temperature, timeout=timeout,
                         task=task)
         raise FleetError(f"{model_id}: {msg}")
 
-    choice = data["choices"][0]["message"]
-    usage = data.get("usage", {}) or {}
-    details = usage.get("completion_tokens_details") or {}
-    cached = usage.get("prompt_cache_hit_tokens") or (
-        usage.get("prompt_tokens_details") or {}
-    ).get("cached_tokens") or 0
-
-    ans = Answer(
-        text=(choice.get("content") or "").strip(),
-        model=data.get("model", model_id),
-        role=role,
-        tokens_in=usage.get("prompt_tokens", 0),
-        tokens_out=usage.get("completion_tokens", 0),
-        tokens_cached=cached,
-        tokens_reasoning=details.get("reasoning_tokens", 0) or 0,
-        seconds=round(time.monotonic() - started, 2),
-        reasoning=(choice.get("reasoning_content") or "").strip(),
-    )
+    fields = anthropic.read(data, model_id) if claude else _read(data, model_id)
+    ans = Answer(role=role, seconds=round(time.monotonic() - started, 2), **fields)
     # Считаем по фактически ответившей модели: GLM умеет подменить её на другую.
     billed = MODELS.get(ans.model, model)
     ans.cost = billed.cost(ans.tokens_in, ans.tokens_out, ans.tokens_cached)
@@ -160,6 +178,7 @@ def call(
             log.emit("retry", role=role, model=ans.model, project=project,
                      reason="пустой ответ, размышления сожгли бюджет",
                      reasoning=ans.tokens_reasoning, headroom=_headroom)
+            running.finish(task_id, False, error="пустой ответ, размышления сожгли бюджет")
             return call(model_id, messages, role=role, project=project,
                         thinking=thinking, max_tokens=max_tokens,
                         temperature=temperature, timeout=timeout,
@@ -168,9 +187,11 @@ def call(
         msg = (f"{ans.model} вернул пустой ответ "
                f"(размышления сожгли {ans.tokens_reasoning} токенов)")
         log.emit("error", role=role, model=ans.model, project=project, error=msg)
+        running.finish(task_id, False, error=msg)
         if fallback:
             return call(fallback, messages, role=role, project=project,
                         thinking=thinking, max_tokens=max_tokens,
                         temperature=temperature, timeout=timeout, task=task)
         raise FleetError(msg)
+    running.finish(task_id, True, ans.cost)
     return ans

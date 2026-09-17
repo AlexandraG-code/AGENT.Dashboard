@@ -17,7 +17,7 @@ Claude Code — главный архитектор: файлы, git, финал
       ├── analyst      логи, метрики, JSON, аномалии
       └── condenser    сжатие страниц, материалов и правил
       │
-память флота data/context/<проект>/  +  журнал data/logs/events.jsonl → дашборд
+память команды data/projects/<проект>/  +  журнал data/logs/events.jsonl → дашборд
 ```
 
 **Топология — звезда, а не общий чат.** Свободная переписка агентов жжёт токены и уплывает
@@ -31,9 +31,9 @@ Claude Code — главный архитектор: файлы, git, финал
 
 | Каталог | Что там | Подробности |
 | --- | --- | --- |
-| `backend/` | MCP-сервер флота, API на FastAPI, промпты ролей | [backend/README.md](backend/README.md) |
+| `backend/` | MCP-сервер команды, API на FastAPI, промпты ролей | [backend/README.md](backend/README.md) |
 | `frontend/` | интерфейс на Next.js: статистика, агенты, контекст | [frontend/README.md](frontend/README.md) |
-| `data/` | память флота: контекст проектов, состав команды, ключи | приватный репозиторий |
+| `data/` | память команды: пространства с их командами и контекстом | приватный репозиторий |
 
 Правила для агентов: общие — [`CLAUDE.md`](CLAUDE.md), частные — в `backend/CLAUDE.md`
 и `frontend/CLAUDE.md`.
@@ -58,10 +58,10 @@ cd frontend && yarn install && cd ..
 cd backend && ./run-dashboard.sh          # http://localhost:8770
 
 # терминал 2 — интерфейс
-cd frontend && yarn dev                   # http://localhost:3000
+cd frontend && yarn dev                   # http://localhost:3001
 ```
 
-Интерфейс живёт на 3000 и сам проксирует `/api` на 8770 — в браузере нужен только 3000.
+Интерфейс живёт на 3001 и сам проксирует `/api` на 8770 — в браузере нужен только 3001.
 По адресу 8770 лежит Swagger (`/docs`) и ReDoc (`/redoc`): посмотреть эндпоинты и подёргать
 их руками.
 

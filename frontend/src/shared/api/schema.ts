@@ -4,2097 +4,4171 @@
  */
 
 export interface paths {
-	'/api/state': {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		/**
-		 * State
-		 * @description Всё, что нужно для первой отрисовки: агенты, пространства, сводка, баланс.
-		 */
-		get: operations['state_api_state_get']
-		put?: never
-		post?: never
-		delete?: never
-		options?: never
-		head?: never
-		patch?: never
-		trace?: never
-	}
-	'/api/events': {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		/** Events */
-		get: operations['events_api_events_get']
-		put?: never
-		post?: never
-		delete?: never
-		options?: never
-		head?: never
-		patch?: never
-		trace?: never
-	}
-	'/api/stats': {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		/**
-		 * Statistics
-		 * @description Полная статистика: итог, проекты × модели × роли, расход по дням.
-		 *
-		 *     `project` пустой — сводка по всем пространствам; иначе только по одному.
-		 */
-		get: operations['statistics_api_stats_get']
-		put?: never
-		post?: never
-		delete?: never
-		options?: never
-		head?: never
-		patch?: never
-		trace?: never
-	}
-	'/api/call/{call_id}': {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		/**
-		 * Call Detail
-		 * @description Что именно ушло в модель и что она ответила — по одному вызову.
-		 */
-		get: operations['call_detail_api_call__call_id__get']
-		put?: never
-		post?: never
-		delete?: never
-		options?: never
-		head?: never
-		patch?: never
-		trace?: never
-	}
-	'/api/prompt': {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		get?: never
-		put?: never
-		/**
-		 * Save Prompt
-		 * @description Сохранить промпт агента. Перезапуск MCP-сервера не нужен — он читает файл заново.
-		 */
-		post: operations['save_prompt_api_prompt_post']
-		delete?: never
-		options?: never
-		head?: never
-		patch?: never
-		trace?: never
-	}
-	'/api/role': {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		get?: never
-		put?: never
-		/**
-		 * Role Save
-		 * @description Создать агента или изменить его настройки (и промпт, если он прислан).
-		 */
-		post: operations['role_save_api_role_post']
-		delete?: never
-		options?: never
-		head?: never
-		patch?: never
-		trace?: never
-	}
-	'/api/role/{name}': {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		get?: never
-		put?: never
-		post?: never
-		/**
-		 * Role Delete
-		 * @description Убрать агента. Промпт остаётся в roles/ — роль можно вернуть без потерь.
-		 */
-		delete: operations['role_delete_api_role__name__delete']
-		options?: never
-		head?: never
-		patch?: never
-		trace?: never
-	}
-	'/api/project': {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		get?: never
-		put?: never
-		/**
-		 * Project Save
-		 * @description Создать рабочее пространство или переименовать существующее.
-		 */
-		post: operations['project_save_api_project_post']
-		delete?: never
-		options?: never
-		head?: never
-		patch?: never
-		trace?: never
-	}
-	'/api/project/{pid}': {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		get?: never
-		put?: never
-		post?: never
-		/**
-		 * Project Delete
-		 * @description Убрать пространство из списка. Заметки остаются на диске — их можно вернуть.
-		 */
-		delete: operations['project_delete_api_project__pid__delete']
-		options?: never
-		head?: never
-		patch?: never
-		trace?: never
-	}
-	'/api/run': {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		get?: never
-		put?: never
-		/**
-		 * Run
-		 * @description Запустить задачу на агенте прямо из интерфейса.
-		 */
-		post: operations['run_api_run_post']
-		delete?: never
-		options?: never
-		head?: never
-		patch?: never
-		trace?: never
-	}
-	'/api/council': {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		get?: never
-		put?: never
-		/** Council */
-		post: operations['council_api_council_post']
-		delete?: never
-		options?: never
-		head?: never
-		patch?: never
-		trace?: never
-	}
-	'/api/context/{project}': {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		/** Ctx List */
-		get: operations['ctx_list_api_context__project__get']
-		put?: never
-		post?: never
-		delete?: never
-		options?: never
-		head?: never
-		patch?: never
-		trace?: never
-	}
-	'/api/context': {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		get?: never
-		put?: never
-		/** Ctx Save */
-		post: operations['ctx_save_api_context_post']
-		delete?: never
-		options?: never
-		head?: never
-		patch?: never
-		trace?: never
-	}
-	'/api/upload': {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		get?: never
-		put?: never
-		/**
-		 * Upload
-		 * @description Принять материал и вернуть черновик заметки для контекста проекта.
-		 *
-		 *     Разбирает бесплатная роль: картинку — зрячий агент, текст — condenser.
-		 *     В контекст черновик попадает не сам, а когда его сохранят: материал стоит
-		 *     прочитать глазами прежде, чем он уедет в промпт каждого агента.
-		 */
-		post: operations['upload_api_upload_post']
-		delete?: never
-		options?: never
-		head?: never
-		patch?: never
-		trace?: never
-	}
-	'/api/provider': {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		get?: never
-		put?: never
-		/**
-		 * Provider Save
-		 * @description Завести или изменить провайдера моделей (OpenAI-совместимый, Yandex, GigaChat).
-		 */
-		post: operations['provider_save_api_provider_post']
-		delete?: never
-		options?: never
-		head?: never
-		patch?: never
-		trace?: never
-	}
-	'/api/provider/{name}': {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		get?: never
-		put?: never
-		post?: never
-		/** Provider Delete */
-		delete: operations['provider_delete_api_provider__name__delete']
-		options?: never
-		head?: never
-		patch?: never
-		trace?: never
-	}
-	'/api/model': {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		get?: never
-		put?: never
-		/**
-		 * Model Save
-		 * @description Завести или изменить модель. id — то, что уходит в поле model запроса.
-		 */
-		post: operations['model_save_api_model_post']
-		/**
-		 * Model Delete
-		 * @description Идентификатор моделью приходит query-параметром: у Yandex он вида gpt://…/latest.
-		 */
-		delete: operations['model_delete_api_model_delete']
-		options?: never
-		head?: never
-		patch?: never
-		trace?: never
-	}
-	'/api/provider/{name}/check': {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		get?: never
-		put?: never
-		/**
-		 * Provider Check
-		 * @description Проверить связь с провайдером. Без модели — запрос каталога, с моделью — короткий вызов.
-		 */
-		post: operations['provider_check_api_provider__name__check_post']
-		delete?: never
-		options?: never
-		head?: never
-		patch?: never
-		trace?: never
-	}
-	'/api/intake/text': {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		get?: never
-		put?: never
-		/**
-		 * Intake Text
-		 * @description Разобрать вставленный кусок (лог, код, переписку) в черновик заметки.
-		 */
-		post: operations['intake_text_api_intake_text_post']
-		delete?: never
-		options?: never
-		head?: never
-		patch?: never
-		trace?: never
-	}
-	'/api/workspace/rules': {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		get?: never
-		put?: never
-		/**
-		 * Workspace Rules
-		 * @description Забрать правила проекта из его репозитория в черновик _rules.md.
-		 */
-		post: operations['workspace_rules_api_workspace_rules_post']
-		delete?: never
-		options?: never
-		head?: never
-		patch?: never
-		trace?: never
-	}
+    "/api/state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * State
+         * @description Всё, что нужно для первой отрисовки: агенты, пространства, сводка, баланс.
+         *
+         *     Команда возвращается по одному пространству: состав у проектов разный, и
+         *     «все роли сразу» — это склейка разных команд в один список. Пустое
+         *     `project` означает, что пространство ещё не выбрано, — тогда ролей нет.
+         */
+        get: operations["state_api_state_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Events */
+        get: operations["events_api_events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Statistics
+         * @description Полная статистика: итог, проекты × модели × роли, расход по дням.
+         *
+         *     `project` пустой — сводка по всем пространствам; иначе только по одному.
+         */
+        get: operations["statistics_api_stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/call/{call_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Call Detail
+         * @description Что именно ушло в модель и что она ответила — по одному вызову.
+         */
+        get: operations["call_detail_api_call__call_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/team/setup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Team Setup
+         * @description Что приложение умеет дать роли и какие служебные места нужно заполнить.
+         *
+         *     Инструменты — реальные права (запись в файлы, поиск). Назначения — выбор
+         *     человека: кто сжимает, кто ведёт летопись, кто спорит в совете. И то и
+         *     другое — про команду конкретного пространства.
+         */
+        get: operations["team_setup_api_team_setup_get"];
+        put?: never;
+        /**
+         * Save Team Setup
+         * @description Сохранить назначения: ключ действия → имя роли (пустая строка снимает).
+         */
+        post: operations["save_team_setup_api_team_setup_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/hints": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Hints
+         * @description Подсказки к системному промпту: готовые куски текста для вставки.
+         */
+        get: operations["read_hints_api_hints_get"];
+        put?: never;
+        /**
+         * Save Hints
+         * @description Сохранить набор подсказок целиком — их состав правит человек.
+         */
+        post: operations["save_hints_api_hints_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/prompts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Prompts
+         * @description Служебные промпты приложения и допустимые подстановки в каждом.
+         */
+        get: operations["read_prompts_api_prompts_get"];
+        put?: never;
+        /**
+         * Save Prompts
+         * @description Сохранить служебные промпты целиком.
+         */
+        post: operations["save_prompts_api_prompts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/org": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Org
+         * @description Отделы, регламенты и области их действия — в одном пространстве.
+         */
+        get: operations["org_api_org_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/org/team": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Org Team Save
+         * @description Завести или изменить отдел.
+         */
+        post: operations["org_team_save_api_org_team_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/org/team/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Org Team Delete
+         * @description Убрать отдел. Агенты остаются без приписки, регламенты отдела удаляются.
+         */
+        delete: operations["org_team_delete_api_org_team__name__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/org/doc/{doc_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Org Doc
+         * @description Регламент вместе с текстом.
+         */
+        get: operations["org_doc_api_org_doc__doc_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Org Doc Delete
+         * @description Убрать регламент вместе с текстом.
+         */
+        delete: operations["org_doc_delete_api_org_doc__doc_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/org/doc": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Org Doc Save
+         * @description Сохранить регламент: карточку в состав, текст — файлом.
+         */
+        post: operations["org_doc_save_api_org_doc_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/org/doc/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Org Doc Upload
+         * @description Загрузить регламент файлом (markdown или простой текст).
+         *
+         *     Файл не разбирается моделью: устав читают как есть, а не в пересказе.
+         */
+        post: operations["org_doc_upload_api_org_doc_upload_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/team/chart": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Team Chart
+         * @description Схема команды пространства: кто кому подчиняется и что будет при отказе.
+         */
+        get: operations["team_chart_api_team_chart_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/team/chart.md": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Team Chart Markdown
+         * @description Та же схема одним markdown-файлом — на выгрузку человеку.
+         */
+        get: operations["team_chart_markdown_api_team_chart_md_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/role/{name}/avatar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Role Avatar
+         * @description Отдать картинку аватара. Без response_model: это файл, а не json.
+         */
+        get: operations["get_role_avatar_api_role__name__avatar_get"];
+        put?: never;
+        /**
+         * Save Role Avatar
+         * @description Загрузить аватар агента. Картинку выбирает человек, как в соцсетях.
+         */
+        post: operations["save_role_avatar_api_role__name__avatar_post"];
+        /**
+         * Delete Role Avatar
+         * @description Убрать аватар агента — останется эмодзи-значок.
+         */
+        delete: operations["delete_role_avatar_api_role__name__avatar_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/prompt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Save Prompt
+         * @description Сохранить промпт агента. Перезапуск MCP-сервера не нужен — он читает файл заново.
+         */
+        post: operations["save_prompt_api_prompt_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Role Save
+         * @description Создать агента или изменить его настройки (и промпт, если он прислан).
+         */
+        post: operations["role_save_api_role_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/role/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Role Delete
+         * @description Убрать агента из команды пространства вместе с его назначениями.
+         */
+        delete: operations["role_delete_api_role__name__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/project": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Project Save
+         * @description Создать рабочее пространство или переименовать существующее.
+         */
+        post: operations["project_save_api_project_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/project/{pid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Project Delete
+         * @description Убрать пространство из списка. Заметки остаются на диске — их можно вернуть.
+         */
+        delete: operations["project_delete_api_project__pid__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Chat
+         * @description Лента общего чата пространства.
+         */
+        get: operations["read_chat_api_chat_get"];
+        put?: never;
+        /**
+         * Post Chat
+         * @description Публикует сообщение и зовёт упомянутых агентов ответить.
+         *
+         *     Ответ агента идёт фоновой задачей: вызов модели живёт минутами, а человек
+         *     должен получить подтверждение сразу и увидеть ответ следующим опросом.
+         */
+        post: operations["post_chat_api_chat_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Jobs
+         * @description Последние задачи, новые сверху, и сколько их сейчас в работе.
+         *
+         *     Сюда же подмешивается работа из общего файлового реестра: вызовы моделей
+         *     идут из разных процессов (MCP-сервер каждой сессии Claude Code, дашборд),
+         *     и без этого запущенное главным архитектором в интерфейсе не видно.
+         */
+        get: operations["list_jobs_api_jobs_get"];
+        put?: never;
+        /**
+         * Create Job
+         * @description Ставит задачу в очередь и возвращает её карточку.
+         *
+         *     Работа уходит в фон намеренно: вызов модели живёт минутами, и держать
+         *     на нём HTTP-запрос значит терять результат вместе с вкладкой браузера.
+         */
+        post: operations["create_job_api_jobs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/jobs/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Job
+         * @description Одна задача целиком: статус, реплики агентов и результат.
+         */
+        get: operations["read_job_api_jobs__job_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run
+         * @description Запустить задачу на агенте прямо из интерфейса.
+         */
+        post: operations["run_api_run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/council": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Council */
+        post: operations["council_api_council_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/context/{project}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ctx List */
+        get: operations["ctx_list_api_context__project__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/context": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ctx Save */
+        post: operations["ctx_save_api_context_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload
+         * @description Принять материал и вернуть черновик заметки для контекста проекта.
+         *
+         *     Разбирает бесплатная роль: картинку — зрячий агент, текст — condenser.
+         *     В контекст черновик попадает не сам, а когда его сохранят: материал стоит
+         *     прочитать глазами прежде, чем он уедет в промпт каждого агента.
+         */
+        post: operations["upload_api_upload_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/provider": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Provider Save
+         * @description Завести или изменить провайдера моделей (OpenAI-совместимый, Yandex, GigaChat).
+         */
+        post: operations["provider_save_api_provider_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/provider/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Provider Delete */
+        delete: operations["provider_delete_api_provider__name__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/provider/{name}/models": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Provider Catalog
+         * @description Список моделей провайдера — чтобы заводить их выбором, а не набором вручную.
+         */
+        get: operations["provider_catalog_api_provider__name__models_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/model": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Model Save
+         * @description Завести или изменить модель. id — то, что уходит в поле model запроса.
+         */
+        post: operations["model_save_api_model_post"];
+        /**
+         * Model Delete
+         * @description Идентификатор моделью приходит query-параметром: у Yandex он вида gpt://…/latest.
+         */
+        delete: operations["model_delete_api_model_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/provider/{name}/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Provider Check
+         * @description Проверить связь с провайдером. Без модели — запрос каталога, с моделью — короткий вызов.
+         */
+        post: operations["provider_check_api_provider__name__check_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/intake/text": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Intake Text
+         * @description Разобрать вставленный кусок (лог, код, переписку) в черновик заметки.
+         */
+        post: operations["intake_text_api_intake_text_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fs/dirs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Dirs
+         * @description Каталоги на машине команды — чтобы репозиторий выбирался мышью, а не набирался руками.
+         *
+         *     Отдаются только имена каталогов, без файлов и без их содержимого. API слушает
+         *     127.0.0.1 и живёт на той же машине, что и репозитории, — это тот же доступ,
+         *     который уже есть у импорта правил, просто теперь его видно.
+         */
+        get: operations["list_dirs_api_fs_dirs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workspace/rules/probe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Workspace Rules Probe
+         * @description Что нашлось по маскам — до вызова модели.
+         *
+         *     Человек должен видеть список файлов раньше, чем потратит время и токены
+         *     на сжатие: если маски не те, это видно сразу.
+         */
+        get: operations["workspace_rules_probe_api_workspace_rules_probe_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workspace/rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Workspace Rules
+         * @description Забрать правила проекта из его репозитория в черновик _rules.md.
+         */
+        post: operations["workspace_rules_api_workspace_rules_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
-export type webhooks = Record<string, never>
+export type webhooks = Record<string, never>;
 export interface components {
-	schemas: {
-		/** Body_upload_api_upload_post */
-		Body_upload_api_upload_post: {
-			/** Project */
-			project: string
-			/**
-			 * Question
-			 * @default
-			 */
-			question: string
-			/**
-			 * File
-			 * Format: binary
-			 */
-			file: string
-		}
-		/**
-		 * CallOut
-		 * @description Разговор целиком: что ушло в модель и что она ответила.
-		 */
-		CallOut: {
-			/** Id */
-			id: string
-			/** Ts */
-			ts: number
-			/**
-			 * Role
-			 * @default
-			 */
-			role: string
-			/**
-			 * Model
-			 * @default
-			 */
-			model: string
-			/**
-			 * Requested
-			 * @default
-			 */
-			requested: string
-			/**
-			 * Project
-			 * @default
-			 */
-			project: string
-			/**
-			 * Task
-			 * @default
-			 */
-			task: string
-			/**
-			 * Messages
-			 * @default []
-			 */
-			messages: components['schemas']['MessageOut'][]
-			/**
-			 * Text
-			 * @default
-			 */
-			text: string
-			/**
-			 * Reasoning
-			 * @default
-			 */
-			reasoning: string
-			/**
-			 * Tokens In
-			 * @default 0
-			 */
-			tokens_in: number
-			/**
-			 * Tokens Out
-			 * @default 0
-			 */
-			tokens_out: number
-			/**
-			 * Tokens Cached
-			 * @default 0
-			 */
-			tokens_cached: number
-			/**
-			 * Tokens Reasoning
-			 * @default 0
-			 */
-			tokens_reasoning: number
-			/**
-			 * Cost
-			 * @default 0
-			 */
-			cost: number
-			/**
-			 * Seconds
-			 * @default 0
-			 */
-			seconds: number
-		}
-		/**
-		 * CheckOut
-		 * @description Результат проверки связи с провайдером.
-		 */
-		CheckOut: {
-			/** Ok */
-			ok: boolean
-			/**
-			 * Status
-			 * @default 0
-			 */
-			status: number
-			/**
-			 * Message
-			 * @default
-			 */
-			message: string
-			/**
-			 * Detail
-			 * @default
-			 */
-			detail: string
-			/**
-			 * Seconds
-			 * @default 0
-			 */
-			seconds: number
-			/**
-			 * Model
-			 * @default
-			 */
-			model: string
-		}
-		/**
-		 * ClaudeSlot
-		 * @description Расход Claude Code. Без стоимости: работа идёт по подписке.
-		 */
-		ClaudeSlot: {
-			/**
-			 * Calls
-			 * @default 0
-			 */
-			calls: number
-			/**
-			 * Tokens In
-			 * @default 0
-			 */
-			tokens_in: number
-			/**
-			 * Tokens Out
-			 * @default 0
-			 */
-			tokens_out: number
-			/**
-			 * Tokens Cached
-			 * @default 0
-			 */
-			tokens_cached: number
-			/**
-			 * Tokens Reasoning
-			 * @default 0
-			 */
-			tokens_reasoning: number
-		}
-		/** ClaudeStat */
-		ClaudeStat: {
-			total: components['schemas']['ClaudeSlot']
-			/** Daily */
-			daily: {
-				[key: string]: components['schemas']['ClaudeSlot']
-			}
-			/** Models */
-			models: {
-				[key: string]: components['schemas']['ClaudeSlot']
-			}
-			/** Projects */
-			projects: {
-				[key: string]: components['schemas']['ClaudeSlot']
-			}
-			/**
-			 * Available
-			 * @default false
-			 */
-			available: boolean
-		}
-		/**
-		 * ContextOut
-		 * @description Контекст проекта: список заметок и их содержимое.
-		 */
-		ContextOut: {
-			/** Project */
-			project: string
-			/** Description */
-			description: string
-			/** Files */
-			files: components['schemas']['NoteInfo'][]
-			/** Core Chars */
-			core_chars: number
-			/** Notes */
-			notes: {
-				[key: string]: string
-			}
-		}
-		/** CouncilOut */
-		CouncilOut: {
-			/** Topic */
-			topic: string
-			/** Transcript */
-			transcript: components['schemas']['Turn'][]
-			/** Cost */
-			cost: number
-		}
-		/** DayStat */
-		DayStat: {
-			/**
-			 * Calls
-			 * @default 0
-			 */
-			calls: number
-			/**
-			 * Cost
-			 * @default 0
-			 */
-			cost: number
-			/**
-			 * Tokens In
-			 * @default 0
-			 */
-			tokens_in: number
-			/**
-			 * Tokens Out
-			 * @default 0
-			 */
-			tokens_out: number
-			/**
-			 * Tokens Cached
-			 * @default 0
-			 */
-			tokens_cached: number
-			/**
-			 * Tokens Reasoning
-			 * @default 0
-			 */
-			tokens_reasoning: number
-			/**
-			 * Seconds
-			 * @default 0
-			 */
-			seconds: number
-			/**
-			 * Errors
-			 * @default 0
-			 */
-			errors: number
-			/** Date */
-			date: string
-		}
-		/**
-		 * EventOut
-		 * @description Строка журнала. Поля зависят от типа события, поэтому почти все необязательные.
-		 */
-		EventOut: {
-			/** Ts */
-			ts: number
-			/** Event */
-			event: string
-			/** Id */
-			id?: string | null
-			/** Role */
-			role?: string | null
-			/** Model */
-			model?: string | null
-			/** Project */
-			project?: string | null
-			/** Task */
-			task?: string | null
-			/** Name */
-			name?: string | null
-			/** Topic */
-			topic?: string | null
-			/** Query */
-			query?: string | null
-			/** Kind */
-			kind?: string | null
-			/** Error */
-			error?: string | null
-			/** Tokens In */
-			tokens_in?: number | null
-			/** Tokens Out */
-			tokens_out?: number | null
-			/** Tokens Cached */
-			tokens_cached?: number | null
-			/** Tokens Reasoning */
-			tokens_reasoning?: number | null
-			/** Cost */
-			cost?: number | null
-			/** Seconds */
-			seconds?: number | null
-		}
-		/** EventsOut */
-		EventsOut: {
-			/** Events */
-			events: components['schemas']['EventOut'][]
-			totals: components['schemas']['Totals']
-		}
-		/** HTTPValidationError */
-		HTTPValidationError: {
-			/** Detail */
-			detail?: components['schemas']['ValidationError'][]
-		}
-		/**
-		 * MessageOut
-		 * @description Сообщение промпта. content — строка либо части мультимодального сообщения.
-		 */
-		MessageOut: {
-			/** Role */
-			role?: string | null
-			/** Content */
-			content?:
-				| string
-				| {
-						[key: string]: unknown
-				  }[]
-				| null
-		}
-		/** ModelIn */
-		ModelIn: {
-			/** Id */
-			id: string
-			/** Provider */
-			provider: string
-			/**
-			 * Title
-			 * @default
-			 */
-			title: string
-			/**
-			 * Price In
-			 * @default 0
-			 */
-			price_in: number
-			/**
-			 * Price In Cached
-			 * @default 0
-			 */
-			price_in_cached: number
-			/**
-			 * Price Out
-			 * @default 0
-			 */
-			price_out: number
-			/**
-			 * Concurrency
-			 * @default 3
-			 */
-			concurrency: number
-			/**
-			 * Vision
-			 * @default false
-			 */
-			vision: boolean
-		}
-		/** ModelOut */
-		ModelOut: {
-			/**
-			 * Id
-			 * @default
-			 */
-			id: string
-			/**
-			 * Title
-			 * @default
-			 */
-			title: string
-			/** Provider */
-			provider: string
-			/**
-			 * Price In
-			 * @default 0
-			 */
-			price_in: number
-			/**
-			 * Price In Cached
-			 * @default 0
-			 */
-			price_in_cached: number
-			/**
-			 * Price Out
-			 * @default 0
-			 */
-			price_out: number
-			/**
-			 * Concurrency
-			 * @default 3
-			 */
-			concurrency: number
-			/**
-			 * Vision
-			 * @default false
-			 */
-			vision: boolean
-		}
-		/** ModelStat */
-		ModelStat: {
-			/**
-			 * Calls
-			 * @default 0
-			 */
-			calls: number
-			/**
-			 * Cost
-			 * @default 0
-			 */
-			cost: number
-			/**
-			 * Tokens In
-			 * @default 0
-			 */
-			tokens_in: number
-			/**
-			 * Tokens Out
-			 * @default 0
-			 */
-			tokens_out: number
-			/**
-			 * Tokens Cached
-			 * @default 0
-			 */
-			tokens_cached: number
-			/**
-			 * Tokens Reasoning
-			 * @default 0
-			 */
-			tokens_reasoning: number
-			/**
-			 * Seconds
-			 * @default 0
-			 */
-			seconds: number
-			/**
-			 * Errors
-			 * @default 0
-			 */
-			errors: number
-			/**
-			 * By Project
-			 * @default {}
-			 */
-			by_project: {
-				[key: string]: components['schemas']['Slot']
-			}
-			/**
-			 * By Role
-			 * @default {}
-			 */
-			by_role: {
-				[key: string]: components['schemas']['Slot']
-			}
-		}
-		/** NoteIn */
-		NoteIn: {
-			/** Project */
-			project: string
-			/** Name */
-			name: string
-			/** Text */
-			text: string
-		}
-		/** NoteInfo */
-		NoteInfo: {
-			/** Name */
-			name: string
-			/** Chars */
-			chars: number
-		}
-		/** ProjectIn */
-		ProjectIn: {
-			/** Id */
-			id: string
-			/**
-			 * Title
-			 * @default
-			 */
-			title: string
-		}
-		/** ProjectOut */
-		ProjectOut: {
-			/** Id */
-			id: string
-			/** Title */
-			title: string
-		}
-		/** ProjectStat */
-		ProjectStat: {
-			/**
-			 * Calls
-			 * @default 0
-			 */
-			calls: number
-			/**
-			 * Cost
-			 * @default 0
-			 */
-			cost: number
-			/**
-			 * Tokens In
-			 * @default 0
-			 */
-			tokens_in: number
-			/**
-			 * Tokens Out
-			 * @default 0
-			 */
-			tokens_out: number
-			/**
-			 * Tokens Cached
-			 * @default 0
-			 */
-			tokens_cached: number
-			/**
-			 * Tokens Reasoning
-			 * @default 0
-			 */
-			tokens_reasoning: number
-			/**
-			 * Seconds
-			 * @default 0
-			 */
-			seconds: number
-			/**
-			 * Errors
-			 * @default 0
-			 */
-			errors: number
-			/**
-			 * By Model
-			 * @default {}
-			 */
-			by_model: {
-				[key: string]: components['schemas']['Slot']
-			}
-			/**
-			 * By Role
-			 * @default {}
-			 */
-			by_role: {
-				[key: string]: components['schemas']['Slot']
-			}
-		}
-		/** PromptIn */
-		PromptIn: {
-			/** Role */
-			role: string
-			/** Prompt */
-			prompt: string
-		}
-		/**
-		 * ProviderIn
-		 * @description Провайдер из формы. Ключ приходит отдельным полем и в team.json не попадает.
-		 */
-		ProviderIn: {
-			/** Name */
-			name: string
-			/**
-			 * Title
-			 * @default
-			 */
-			title: string
-			/** Base Url */
-			base_url: string
-			/**
-			 * Auth
-			 * @default bearer
-			 */
-			auth: string
-			/**
-			 * Key Env
-			 * @default
-			 */
-			key_env: string
-			/**
-			 * Verify Ssl
-			 * @default true
-			 */
-			verify_ssl: boolean
-			/**
-			 * Send Thinking
-			 * @default false
-			 */
-			send_thinking: boolean
-			/** Api Key */
-			api_key?: string | null
-		}
-		/**
-		 * ProviderOut
-		 * @description Провайдер моделей. Ключ наружу не отдаётся — только признак «задан».
-		 */
-		ProviderOut: {
-			/** Name */
-			name: string
-			/** Title */
-			title: string
-			/** Base Url */
-			base_url: string
-			/** Auth */
-			auth: string
-			/**
-			 * Key Env
-			 * @default
-			 */
-			key_env: string
-			/**
-			 * Verify Ssl
-			 * @default true
-			 */
-			verify_ssl: boolean
-			/**
-			 * Send Thinking
-			 * @default true
-			 */
-			send_thinking: boolean
-			/**
-			 * Builtin
-			 * @default false
-			 */
-			builtin: boolean
-			/**
-			 * Has Key
-			 * @default false
-			 */
-			has_key: boolean
-		}
-		/**
-		 * RoleIn
-		 * @description Настройки агента из формы. prompt=None означает «промпт не трогать».
-		 */
-		RoleIn: {
-			/** Name */
-			name: string
-			/**
-			 * Model
-			 * @default
-			 */
-			model: string
-			/**
-			 * Description
-			 * @default
-			 */
-			description: string
-			/** Fallback */
-			fallback?: string | null
-			/**
-			 * Thinking
-			 * @default false
-			 */
-			thinking: boolean
-			/**
-			 * Max Tokens
-			 * @default 6000
-			 */
-			max_tokens: number
-			/**
-			 * Temperature
-			 * @default 0.3
-			 */
-			temperature: number
-			/** Prompt */
-			prompt?: string | null
-		}
-		/**
-		 * RoleOut
-		 * @description Агент: настройки плюс текущий промпт.
-		 */
-		RoleOut: {
-			/** Name */
-			name: string
-			/** Model */
-			model: string
-			/** Fallback */
-			fallback?: string | null
-			/**
-			 * Thinking
-			 * @default false
-			 */
-			thinking: boolean
-			/**
-			 * Max Tokens
-			 * @default 4000
-			 */
-			max_tokens: number
-			/**
-			 * Temperature
-			 * @default 0.3
-			 */
-			temperature: number
-			/**
-			 * Description
-			 * @default
-			 */
-			description: string
-			/**
-			 * Prompt
-			 * @default
-			 */
-			prompt: string
-		}
-		/** RoleStat */
-		RoleStat: {
-			/**
-			 * Calls
-			 * @default 0
-			 */
-			calls: number
-			/**
-			 * Cost
-			 * @default 0
-			 */
-			cost: number
-			/**
-			 * Tokens In
-			 * @default 0
-			 */
-			tokens_in: number
-			/**
-			 * Tokens Out
-			 * @default 0
-			 */
-			tokens_out: number
-			/**
-			 * Tokens Cached
-			 * @default 0
-			 */
-			tokens_cached: number
-			/**
-			 * Tokens Reasoning
-			 * @default 0
-			 */
-			tokens_reasoning: number
-			/**
-			 * Seconds
-			 * @default 0
-			 */
-			seconds: number
-			/**
-			 * Errors
-			 * @default 0
-			 */
-			errors: number
-			/**
-			 * By Model
-			 * @default {}
-			 */
-			by_model: {
-				[key: string]: components['schemas']['Slot']
-			}
-		}
-		/** RulesIn */
-		RulesIn: {
-			/** Project */
-			project: string
-			/** Repo */
-			repo: string
-			/**
-			 * Compress
-			 * @default true
-			 */
-			compress: boolean
-		}
-		/** RunOut */
-		RunOut: {
-			/** Text */
-			text: string
-			/** Model */
-			model: string
-			/** Cost */
-			cost: number
-			/** Seconds */
-			seconds: number
-			/** Tokens In */
-			tokens_in: number
-			/** Tokens Out */
-			tokens_out: number
-			/** Reasoning */
-			reasoning: number
-		}
-		/** SavedOut */
-		SavedOut: {
-			/**
-			 * Ok
-			 * @default true
-			 */
-			ok: boolean
-			/** Id */
-			id?: string | null
-			/** Title */
-			title?: string | null
-			/** Name */
-			name?: string | null
-			/** Chars */
-			chars?: number | null
-			/** File */
-			file?: string | null
-		}
-		/**
-		 * Slot
-		 * @description Срез расхода: сколько вызовов, токенов и денег ушло в этом разрезе.
-		 */
-		Slot: {
-			/**
-			 * Calls
-			 * @default 0
-			 */
-			calls: number
-			/**
-			 * Cost
-			 * @default 0
-			 */
-			cost: number
-			/**
-			 * Tokens In
-			 * @default 0
-			 */
-			tokens_in: number
-			/**
-			 * Tokens Out
-			 * @default 0
-			 */
-			tokens_out: number
-			/**
-			 * Tokens Cached
-			 * @default 0
-			 */
-			tokens_cached: number
-			/**
-			 * Tokens Reasoning
-			 * @default 0
-			 */
-			tokens_reasoning: number
-			/**
-			 * Seconds
-			 * @default 0
-			 */
-			seconds: number
-			/**
-			 * Errors
-			 * @default 0
-			 */
-			errors: number
-		}
-		/** StateOut */
-		StateOut: {
-			/** Roles */
-			roles: components['schemas']['RoleOut'][]
-			/** Projects */
-			projects: components['schemas']['ProjectOut'][]
-			/** Models */
-			models: {
-				[key: string]: components['schemas']['ModelOut']
-			}
-			/** Providers */
-			providers: components['schemas']['ProviderOut'][]
-			totals: components['schemas']['Totals']
-			/** Balance */
-			balance?: number | null
-		}
-		/** StatsOut */
-		StatsOut: {
-			total: components['schemas']['Slot']
-			total_24h: components['schemas']['Slot']
-			/** Projects */
-			projects: {
-				[key: string]: components['schemas']['ProjectStat']
-			}
-			/** Models */
-			models: {
-				[key: string]: components['schemas']['ModelStat']
-			}
-			/** Roles */
-			roles: {
-				[key: string]: components['schemas']['RoleStat']
-			}
-			/** Daily */
-			daily: components['schemas']['DayStat'][]
-			claude: components['schemas']['ClaudeStat']
-		}
-		/** TaskIn */
-		TaskIn: {
-			/** Role */
-			role: string
-			/** Task */
-			task: string
-			/**
-			 * Project
-			 * @default
-			 */
-			project: string
-			/**
-			 * Extra
-			 * @default
-			 */
-			extra: string
-		}
-		/** TextIn */
-		TextIn: {
-			/** Project */
-			project: string
-			/** Text */
-			text: string
-			/**
-			 * Question
-			 * @default
-			 */
-			question: string
-			/**
-			 * Source
-			 * @default
-			 */
-			source: string
-		}
-		/**
-		 * Totals
-		 * @description Сводка из журнала — то, что висит в шапке.
-		 */
-		Totals: {
-			/**
-			 * Calls
-			 * @default 0
-			 */
-			calls: number
-			/**
-			 * Cost
-			 * @default 0
-			 */
-			cost: number
-			/**
-			 * Tokens In
-			 * @default 0
-			 */
-			tokens_in: number
-			/**
-			 * Tokens Out
-			 * @default 0
-			 */
-			tokens_out: number
-			/**
-			 * Calls 24H
-			 * @default 0
-			 */
-			calls_24h: number
-			/**
-			 * Cost 24H
-			 * @default 0
-			 */
-			cost_24h: number
-			/**
-			 * Errors
-			 * @default 0
-			 */
-			errors: number
-			/**
-			 * By Model
-			 * @default {}
-			 */
-			by_model: {
-				[key: string]: {
-					[key: string]: unknown
-				}
-			}
-			/**
-			 * By Role
-			 * @default {}
-			 */
-			by_role: {
-				[key: string]: {
-					[key: string]: unknown
-				}
-			}
-			/**
-			 * By Project
-			 * @default {}
-			 */
-			by_project: {
-				[key: string]: {
-					[key: string]: unknown
-				}
-			}
-		}
-		/** Turn */
-		Turn: {
-			/** Speaker */
-			speaker: string
-			/** Model */
-			model: string
-			/** Text */
-			text: string
-		}
-		/** UploadOut */
-		UploadOut: {
-			/** Kind */
-			kind: string
-			/** Note */
-			note: string
-			/** Model */
-			model: string
-			/** Cost */
-			cost: number
-			/** Source */
-			source: string
-			/** Name */
-			name: string
-			/** Stored */
-			stored: string
-			/** Bytes */
-			bytes: number
-		}
-		/** ValidationError */
-		ValidationError: {
-			/** Location */
-			loc: (string | number)[]
-			/** Message */
-			msg: string
-			/** Error Type */
-			type: string
-		}
-	}
-	responses: never
-	parameters: never
-	requestBodies: never
-	headers: never
-	pathItems: never
+    schemas: {
+        /**
+         * AssignmentOut
+         * @description Служебное место в команде и роль, которая его занимает.
+         */
+        AssignmentOut: {
+            /** Key */
+            key: string;
+            /** Title */
+            title: string;
+            /**
+             * Role
+             * @default
+             */
+            role: string;
+        };
+        /** Body_org_doc_upload_api_org_doc_upload_post */
+        Body_org_doc_upload_api_org_doc_upload_post: {
+            /** Project */
+            project: string;
+            /**
+             * Title
+             * @default
+             */
+            title: string;
+            /**
+             * Scope
+             * @default space
+             */
+            scope: string;
+            /**
+             * Team Name
+             * @default
+             */
+            team_name: string;
+            /**
+             * File
+             * Format: binary
+             */
+            file: string;
+        };
+        /** Body_save_role_avatar_api_role__name__avatar_post */
+        Body_save_role_avatar_api_role__name__avatar_post: {
+            /** Project */
+            project: string;
+            /**
+             * File
+             * Format: binary
+             */
+            file: string;
+        };
+        /** Body_upload_api_upload_post */
+        Body_upload_api_upload_post: {
+            /** Project */
+            project: string;
+            /**
+             * Question
+             * @default
+             */
+            question: string;
+            /**
+             * File
+             * Format: binary
+             */
+            file: string;
+        };
+        /**
+         * CallOut
+         * @description Разговор целиком: что ушло в модель и что она ответила.
+         */
+        CallOut: {
+            /** Id */
+            id: string;
+            /** Ts */
+            ts: number;
+            /**
+             * Role
+             * @default
+             */
+            role: string;
+            /**
+             * Model
+             * @default
+             */
+            model: string;
+            /**
+             * Requested
+             * @default
+             */
+            requested: string;
+            /**
+             * Project
+             * @default
+             */
+            project: string;
+            /**
+             * Task
+             * @default
+             */
+            task: string;
+            /**
+             * Messages
+             * @default []
+             */
+            messages: components["schemas"]["MessageOut"][];
+            /**
+             * Text
+             * @default
+             */
+            text: string;
+            /**
+             * Reasoning
+             * @default
+             */
+            reasoning: string;
+            /**
+             * Tokens In
+             * @default 0
+             */
+            tokens_in: number;
+            /**
+             * Tokens Out
+             * @default 0
+             */
+            tokens_out: number;
+            /**
+             * Tokens Cached
+             * @default 0
+             */
+            tokens_cached: number;
+            /**
+             * Tokens Reasoning
+             * @default 0
+             */
+            tokens_reasoning: number;
+            /**
+             * Cost
+             * @default 0
+             */
+            cost: number;
+            /**
+             * Seconds
+             * @default 0
+             */
+            seconds: number;
+        };
+        /**
+         * CatalogModel
+         * @description Строка каталога провайдера. Поля — те, что прислал он сам.
+         */
+        CatalogModel: {
+            /** Id */
+            id: string;
+            /**
+             * Raw
+             * @default
+             */
+            raw: string;
+            /**
+             * Owned By
+             * @default
+             */
+            owned_by: string;
+            /**
+             * Kind
+             * @default
+             */
+            kind: string;
+            /**
+             * Registered
+             * @default false
+             */
+            registered: boolean;
+        };
+        /**
+         * CatalogOut
+         * @description Каталог моделей провайдера: что он отдаёт и что из этого уже заведено.
+         */
+        CatalogOut: {
+            /** Provider */
+            provider: string;
+            /** Models */
+            models: components["schemas"]["CatalogModel"][];
+        };
+        /**
+         * ChartFailover
+         * @description Что произойдёт, если роль отвалится: шаги подмены по порядку.
+         */
+        ChartFailover: {
+            /** Role */
+            role: string;
+            /**
+             * Icon
+             * @default
+             */
+            icon: string;
+            /**
+             * On Fail
+             * @default []
+             */
+            on_fail: string[];
+        };
+        /**
+         * ChartOut
+         * @description Схема команды целиком: иерархия, подмены и текст диаграммы.
+         */
+        ChartOut: {
+            lead?: components["schemas"]["ChartRole"] | null;
+            deputy?: components["schemas"]["ChartRole"] | null;
+            /**
+             * Council
+             * @default []
+             */
+            council: components["schemas"]["ChartRole"][];
+            /**
+             * Workers
+             * @default []
+             */
+            workers: components["schemas"]["ChartRole"][];
+            /**
+             * Failover
+             * @default []
+             */
+            failover: components["schemas"]["ChartFailover"][];
+            /**
+             * Mermaid
+             * @default
+             */
+            mermaid: string;
+        };
+        /**
+         * ChartRole
+         * @description Роль в схеме команды: кто это и на чём работает.
+         */
+        ChartRole: {
+            /** Name */
+            name: string;
+            /**
+             * Icon
+             * @default
+             */
+            icon: string;
+            /**
+             * Model
+             * @default
+             */
+            model: string;
+            /**
+             * Provider
+             * @default
+             */
+            provider: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /**
+             * External
+             * @default false
+             */
+            external: boolean;
+            /** Fallback Model */
+            fallback_model?: string | null;
+            /**
+             * Plan
+             * @default
+             */
+            plan: string;
+        };
+        /**
+         * ChatIn
+         * @description Сообщение в общий чат команды.
+         */
+        ChatIn: {
+            /**
+             * Project
+             * @default
+             */
+            project: string;
+            /**
+             * Author
+             * @default human
+             */
+            author: string;
+            /** Text */
+            text: string;
+        };
+        /**
+         * ChatMessageOut
+         * @description Сообщение общего чата: кто написал, что и кого позвал.
+         */
+        ChatMessageOut: {
+            /** Ts */
+            ts: number;
+            /** Author */
+            author: string;
+            /** Text */
+            text: string;
+            /**
+             * Mentions
+             * @default []
+             */
+            mentions: string[];
+            /**
+             * Model
+             * @default
+             */
+            model: string;
+            /**
+             * Cost
+             * @default 0
+             */
+            cost: number;
+        };
+        /**
+         * ChatOut
+         * @description Лента чата, старые сообщения сверху.
+         */
+        ChatOut: {
+            /** Messages */
+            messages: components["schemas"]["ChatMessageOut"][];
+        };
+        /**
+         * CheckOut
+         * @description Результат проверки связи с провайдером.
+         */
+        CheckOut: {
+            /** Ok */
+            ok: boolean;
+            /**
+             * Status
+             * @default 0
+             */
+            status: number;
+            /**
+             * Message
+             * @default
+             */
+            message: string;
+            /**
+             * Detail
+             * @default
+             */
+            detail: string;
+            /**
+             * Seconds
+             * @default 0
+             */
+            seconds: number;
+            /**
+             * Model
+             * @default
+             */
+            model: string;
+        };
+        /**
+         * ClaudeSlot
+         * @description Расход Claude Code. Без стоимости: работа идёт по подписке.
+         */
+        ClaudeSlot: {
+            /**
+             * Calls
+             * @default 0
+             */
+            calls: number;
+            /**
+             * Tokens In
+             * @default 0
+             */
+            tokens_in: number;
+            /**
+             * Tokens Out
+             * @default 0
+             */
+            tokens_out: number;
+            /**
+             * Tokens Cached
+             * @default 0
+             */
+            tokens_cached: number;
+            /**
+             * Tokens Reasoning
+             * @default 0
+             */
+            tokens_reasoning: number;
+        };
+        /**
+         * ClaudeStat
+         * @description Расход Claude Code.
+         *
+         *     `windows` — скользящие окна («h5» — за последние 5 часов, «d7» — за неделю).
+         *     Это объём работы, а не остаток лимита: сколько разрешено подпиской, Claude
+         *     Code наружу не отдаёт, и выдумывать процент нельзя.
+         */
+        ClaudeStat: {
+            total: components["schemas"]["ClaudeSlot"];
+            /** Daily */
+            daily: {
+                [key: string]: components["schemas"]["ClaudeSlot"];
+            };
+            /** Models */
+            models: {
+                [key: string]: components["schemas"]["ClaudeSlot"];
+            };
+            /** Projects */
+            projects: {
+                [key: string]: components["schemas"]["ClaudeSlot"];
+            };
+            /**
+             * Windows
+             * @default {}
+             */
+            windows: {
+                [key: string]: components["schemas"]["ClaudeSlot"];
+            };
+            /**
+             * Available
+             * @default false
+             */
+            available: boolean;
+        };
+        /**
+         * ContextOut
+         * @description Контекст проекта: список заметок и их содержимое.
+         */
+        ContextOut: {
+            /** Project */
+            project: string;
+            /** Description */
+            description: string;
+            /** Files */
+            files: components["schemas"]["NoteInfo"][];
+            /** Core Chars */
+            core_chars: number;
+            /** Notes */
+            notes: {
+                [key: string]: string;
+            };
+        };
+        /** CouncilOut */
+        CouncilOut: {
+            /** Topic */
+            topic: string;
+            /** Transcript */
+            transcript: components["schemas"]["Turn"][];
+            /** Cost */
+            cost: number;
+        };
+        /** DayStat */
+        DayStat: {
+            /**
+             * Calls
+             * @default 0
+             */
+            calls: number;
+            /**
+             * Cost
+             * @default 0
+             */
+            cost: number;
+            /**
+             * Tokens In
+             * @default 0
+             */
+            tokens_in: number;
+            /**
+             * Tokens Out
+             * @default 0
+             */
+            tokens_out: number;
+            /**
+             * Tokens Cached
+             * @default 0
+             */
+            tokens_cached: number;
+            /**
+             * Tokens Reasoning
+             * @default 0
+             */
+            tokens_reasoning: number;
+            /**
+             * Seconds
+             * @default 0
+             */
+            seconds: number;
+            /**
+             * Errors
+             * @default 0
+             */
+            errors: number;
+            /** Date */
+            date: string;
+        };
+        /**
+         * DirEntry
+         * @description Каталог в обзоре файловой системы.
+         */
+        DirEntry: {
+            /** Name */
+            name: string;
+            /** Path */
+            path: string;
+            /**
+             * Is Repo
+             * @default false
+             */
+            is_repo: boolean;
+        };
+        /**
+         * DirsOut
+         * @description Содержимое каталога: сам путь, куда подняться и что внутри.
+         */
+        DirsOut: {
+            /** Path */
+            path: string;
+            /** Parent */
+            parent?: string | null;
+            /** Entries */
+            entries: components["schemas"]["DirEntry"][];
+        };
+        /**
+         * DocIn
+         * @description Регламент из формы: карточка и текст одним сохранением.
+         */
+        DocIn: {
+            /** Project */
+            project: string;
+            /**
+             * Id
+             * @default
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /**
+             * Scope
+             * @default space
+             */
+            scope: string;
+            /**
+             * Team
+             * @default
+             */
+            team: string;
+            /**
+             * Order
+             * @default 0
+             */
+            order: number;
+            /**
+             * Text
+             * @default
+             */
+            text: string;
+        };
+        /**
+         * DocOut
+         * @description Карточка регламента без текста: списку он не нужен, а весит страницы.
+         */
+        DocOut: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /**
+             * Scope
+             * @default space
+             */
+            scope: string;
+            /**
+             * Project
+             * @default
+             */
+            project: string;
+            /**
+             * Team
+             * @default
+             */
+            team: string;
+            /**
+             * Order
+             * @default 0
+             */
+            order: number;
+            /**
+             * Chars
+             * @default 0
+             */
+            chars: number;
+        };
+        /** DocTextOut */
+        DocTextOut: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /**
+             * Scope
+             * @default space
+             */
+            scope: string;
+            /**
+             * Project
+             * @default
+             */
+            project: string;
+            /**
+             * Team
+             * @default
+             */
+            team: string;
+            /**
+             * Order
+             * @default 0
+             */
+            order: number;
+            /**
+             * Chars
+             * @default 0
+             */
+            chars: number;
+            /**
+             * Text
+             * @default
+             */
+            text: string;
+        };
+        /**
+         * EventOut
+         * @description Строка журнала. Поля зависят от типа события, поэтому почти все необязательные.
+         */
+        EventOut: {
+            /** Ts */
+            ts: number;
+            /** Event */
+            event: string;
+            /** Id */
+            id?: string | null;
+            /** Role */
+            role?: string | null;
+            /** Model */
+            model?: string | null;
+            /** Project */
+            project?: string | null;
+            /** Task */
+            task?: string | null;
+            /** Name */
+            name?: string | null;
+            /** Topic */
+            topic?: string | null;
+            /** Query */
+            query?: string | null;
+            /** Kind */
+            kind?: string | null;
+            /** Error */
+            error?: string | null;
+            /** Tokens In */
+            tokens_in?: number | null;
+            /** Tokens Out */
+            tokens_out?: number | null;
+            /** Tokens Cached */
+            tokens_cached?: number | null;
+            /** Tokens Reasoning */
+            tokens_reasoning?: number | null;
+            /** Cost */
+            cost?: number | null;
+            /** Seconds */
+            seconds?: number | null;
+        };
+        /** EventsOut */
+        EventsOut: {
+            /** Events */
+            events: components["schemas"]["EventOut"][];
+            totals: components["schemas"]["Totals"];
+        };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * HintIn
+         * @description Подсказка к промпту: ключ, заголовок кнопки и сам текст.
+         */
+        HintIn: {
+            /** Key */
+            key: string;
+            /**
+             * Title
+             * @default
+             */
+            title: string;
+            /** Text */
+            text: string;
+        };
+        /**
+         * HintOut
+         * @description Подсказка к системному промпту: заголовок кнопки и текст для вставки.
+         */
+        HintOut: {
+            /** Key */
+            key: string;
+            /**
+             * Title
+             * @default
+             */
+            title: string;
+            /** Text */
+            text: string;
+        };
+        /** HintsIn */
+        HintsIn: {
+            /** Hints */
+            hints: components["schemas"]["HintIn"][];
+        };
+        /** HintsOut */
+        HintsOut: {
+            /** Hints */
+            hints: components["schemas"]["HintOut"][];
+        };
+        /**
+         * JobIn
+         * @description Тело запроса на создание фоновой задачи.
+         */
+        JobIn: {
+            /**
+             * Kind
+             * @default run
+             */
+            kind: string;
+            /**
+             * Project
+             * @default
+             */
+            project: string;
+            /**
+             * Role
+             * @default senior
+             */
+            role: string;
+            /** Task */
+            task: string;
+            /**
+             * Extra
+             * @default
+             */
+            extra: string;
+            /**
+             * Rounds
+             * @default 2
+             */
+            rounds: number;
+            /**
+             * Apply Files
+             * @default false
+             */
+            apply_files: boolean;
+        };
+        /**
+         * JobOut
+         * @description Карточка фоновой задачи: поля датакласса Job плюс шаги разговора.
+         */
+        JobOut: {
+            /** Id */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** Project */
+            project: string;
+            /** Role */
+            role: string;
+            /** Task */
+            task: string;
+            /** Status */
+            status: string;
+            /** Started */
+            started: number;
+            /** Finished */
+            finished?: number | null;
+            /**
+             * Cost
+             * @default 0
+             */
+            cost: number;
+            /**
+             * Tokens In
+             * @default 0
+             */
+            tokens_in: number;
+            /**
+             * Tokens Out
+             * @default 0
+             */
+            tokens_out: number;
+            /**
+             * Error
+             * @default
+             */
+            error: string;
+            /**
+             * Steps
+             * @default []
+             */
+            steps: components["schemas"]["JobStepOut"][];
+            /**
+             * Result
+             * @default
+             */
+            result: string;
+            /**
+             * Source
+             * @default dashboard
+             */
+            source: string;
+            /**
+             * Session
+             * @default
+             */
+            session: string;
+            /**
+             * Apply Files
+             * @default false
+             */
+            apply_files: boolean;
+        };
+        /**
+         * JobStepOut
+         * @description Шаг выполнения задачи: кто сказал, какая модель, текст и время.
+         */
+        JobStepOut: {
+            /** Speaker */
+            speaker: string;
+            /** Model */
+            model: string;
+            /** Text */
+            text: string;
+            /** At */
+            at: number;
+        };
+        /**
+         * JobsOut
+         * @description Список задач и число активных.
+         */
+        JobsOut: {
+            /** Jobs */
+            jobs: components["schemas"]["JobOut"][];
+            /** Active */
+            active: number;
+        };
+        /**
+         * MessageOut
+         * @description Сообщение промпта. content — строка либо части мультимодального сообщения.
+         */
+        MessageOut: {
+            /** Role */
+            role?: string | null;
+            /** Content */
+            content?: string | {
+                [key: string]: unknown;
+            }[] | null;
+        };
+        /**
+         * ModelIn
+         * @description Модель из формы. plan — описание тарифа для человека, а не цена.
+         */
+        ModelIn: {
+            /** Id */
+            id: string;
+            /** Provider */
+            provider: string;
+            /**
+             * Title
+             * @default
+             */
+            title: string;
+            /**
+             * Price In
+             * @default 0
+             */
+            price_in: number;
+            /**
+             * Price In Cached
+             * @default 0
+             */
+            price_in_cached: number;
+            /**
+             * Price Out
+             * @default 0
+             */
+            price_out: number;
+            /**
+             * Concurrency
+             * @default 3
+             */
+            concurrency: number;
+            /**
+             * Vision
+             * @default false
+             */
+            vision: boolean;
+            /**
+             * Plan
+             * @default
+             */
+            plan: string;
+        };
+        /**
+         * ModelOut
+         * @description Модель в реестре. `plan` — описание тарифа для человека, а не цена.
+         */
+        ModelOut: {
+            /**
+             * Id
+             * @default
+             */
+            id: string;
+            /**
+             * Title
+             * @default
+             */
+            title: string;
+            /** Provider */
+            provider: string;
+            /**
+             * Price In
+             * @default 0
+             */
+            price_in: number;
+            /**
+             * Price In Cached
+             * @default 0
+             */
+            price_in_cached: number;
+            /**
+             * Price Out
+             * @default 0
+             */
+            price_out: number;
+            /**
+             * Concurrency
+             * @default 3
+             */
+            concurrency: number;
+            /**
+             * Vision
+             * @default false
+             */
+            vision: boolean;
+            /**
+             * Plan
+             * @default
+             */
+            plan: string;
+        };
+        /** ModelStat */
+        ModelStat: {
+            /**
+             * Calls
+             * @default 0
+             */
+            calls: number;
+            /**
+             * Cost
+             * @default 0
+             */
+            cost: number;
+            /**
+             * Tokens In
+             * @default 0
+             */
+            tokens_in: number;
+            /**
+             * Tokens Out
+             * @default 0
+             */
+            tokens_out: number;
+            /**
+             * Tokens Cached
+             * @default 0
+             */
+            tokens_cached: number;
+            /**
+             * Tokens Reasoning
+             * @default 0
+             */
+            tokens_reasoning: number;
+            /**
+             * Seconds
+             * @default 0
+             */
+            seconds: number;
+            /**
+             * Errors
+             * @default 0
+             */
+            errors: number;
+            /**
+             * By Project
+             * @default {}
+             */
+            by_project: {
+                [key: string]: components["schemas"]["Slot"];
+            };
+            /**
+             * By Role
+             * @default {}
+             */
+            by_role: {
+                [key: string]: components["schemas"]["Slot"];
+            };
+        };
+        /** NoteIn */
+        NoteIn: {
+            /** Project */
+            project: string;
+            /** Name */
+            name: string;
+            /** Text */
+            text: string;
+        };
+        /** NoteInfo */
+        NoteInfo: {
+            /** Name */
+            name: string;
+            /** Chars */
+            chars: number;
+        };
+        /**
+         * OrgOut
+         * @description Организационная часть: отделы, регламенты и доступные области.
+         */
+        OrgOut: {
+            /** Teams */
+            teams: components["schemas"]["TeamOut"][];
+            /** Documents */
+            documents: components["schemas"]["DocOut"][];
+            /** Scopes */
+            scopes: components["schemas"]["ScopeOut"][];
+        };
+        /**
+         * ProjectIn
+         * @description Пространство из формы.
+         *
+         *     repo=None означает «путь к репозиторию не трогать», sign_code=None —
+         *     «оставить прежнюю настройку подписи кода». Пути (repo, data_dir) живут в
+         *     локальном файле машины и в данные не уезжают.
+         */
+        ProjectIn: {
+            /** Id */
+            id: string;
+            /**
+             * Title
+             * @default
+             */
+            title: string;
+            /** Repo */
+            repo?: string | null;
+            /** Sign Code */
+            sign_code?: boolean | null;
+            /** Rule Globs */
+            rule_globs?: string[] | null;
+            /** Data Dir */
+            data_dir?: string | null;
+            /**
+             * Copy From
+             * @default
+             */
+            copy_from: string;
+        };
+        /**
+         * ProjectOut
+         * @description Пространство: алиас и каталог клона, по которому оно опознаётся.
+         *
+         *     `repo` и `data_dir` — пути этой машины, они приходят из локального файла
+         *     и на другом устройстве будут другими (см. `fleet.paths`).
+         */
+        ProjectOut: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /**
+             * Repo
+             * @default
+             */
+            repo: string;
+            /**
+             * Data Dir
+             * @default
+             */
+            data_dir: string;
+            /**
+             * Sign Code
+             * @default true
+             */
+            sign_code: boolean;
+            /**
+             * Rule Globs
+             * @default []
+             */
+            rule_globs: string[];
+        };
+        /** ProjectStat */
+        ProjectStat: {
+            /**
+             * Calls
+             * @default 0
+             */
+            calls: number;
+            /**
+             * Cost
+             * @default 0
+             */
+            cost: number;
+            /**
+             * Tokens In
+             * @default 0
+             */
+            tokens_in: number;
+            /**
+             * Tokens Out
+             * @default 0
+             */
+            tokens_out: number;
+            /**
+             * Tokens Cached
+             * @default 0
+             */
+            tokens_cached: number;
+            /**
+             * Tokens Reasoning
+             * @default 0
+             */
+            tokens_reasoning: number;
+            /**
+             * Seconds
+             * @default 0
+             */
+            seconds: number;
+            /**
+             * Errors
+             * @default 0
+             */
+            errors: number;
+            /**
+             * By Model
+             * @default {}
+             */
+            by_model: {
+                [key: string]: components["schemas"]["Slot"];
+            };
+            /**
+             * By Role
+             * @default {}
+             */
+            by_role: {
+                [key: string]: components["schemas"]["Slot"];
+            };
+        };
+        /** PromptIn */
+        PromptIn: {
+            /** Project */
+            project: string;
+            /** Role */
+            role: string;
+            /** Prompt */
+            prompt: string;
+        };
+        /**
+         * PromptOut
+         * @description Служебный промпт: ключ, текст и допустимые подстановки.
+         */
+        PromptOut: {
+            /** Key */
+            key: string;
+            /**
+             * Text
+             * @default
+             */
+            text: string;
+            /**
+             * Placeholders
+             * @default []
+             */
+            placeholders: string[];
+        };
+        /**
+         * PromptsIn
+         * @description Служебные промпты целиком: ключ → текст.
+         */
+        PromptsIn: {
+            /** Prompts */
+            prompts: {
+                [key: string]: string;
+            };
+        };
+        /** PromptsOut */
+        PromptsOut: {
+            /** Prompts */
+            prompts: components["schemas"]["PromptOut"][];
+        };
+        /**
+         * ProviderIn
+         * @description Провайдер из формы. Ключ приходит отдельным полем и в team.json не попадает.
+         */
+        ProviderIn: {
+            /** Name */
+            name: string;
+            /**
+             * Title
+             * @default
+             */
+            title: string;
+            /** Base Url */
+            base_url: string;
+            /**
+             * Auth
+             * @default bearer
+             */
+            auth: string;
+            /**
+             * Key Env
+             * @default
+             */
+            key_env: string;
+            /**
+             * Verify Ssl
+             * @default true
+             */
+            verify_ssl: boolean;
+            /**
+             * Send Thinking
+             * @default false
+             */
+            send_thinking: boolean;
+            /** Api Key */
+            api_key?: string | null;
+            /** Headers */
+            headers?: {
+                [key: string]: string;
+            } | null;
+        };
+        /**
+         * ProviderOut
+         * @description Провайдер моделей. Ключ наружу не отдаётся — только признак «задан».
+         */
+        ProviderOut: {
+            /** Name */
+            name: string;
+            /** Title */
+            title: string;
+            /** Base Url */
+            base_url: string;
+            /** Auth */
+            auth: string;
+            /**
+             * Key Env
+             * @default
+             */
+            key_env: string;
+            /**
+             * Verify Ssl
+             * @default true
+             */
+            verify_ssl: boolean;
+            /**
+             * Send Thinking
+             * @default true
+             */
+            send_thinking: boolean;
+            /**
+             * Builtin
+             * @default false
+             */
+            builtin: boolean;
+            /**
+             * Has Key
+             * @default false
+             */
+            has_key: boolean;
+            /**
+             * Headers
+             * @default {}
+             */
+            headers: {
+                [key: string]: string;
+            };
+        };
+        /**
+         * RoleIn
+         * @description Настройки агента из формы. prompt=None означает «промпт не трогать».
+         *
+         *     `lead` — главный, тот кто раздаёт задачи; `external` — работает вне нашего
+         *     клиента (свой процесс, своя подписка), поэтому его модель в реестре не нужна.
+         */
+        RoleIn: {
+            /** Project */
+            project: string;
+            /** Name */
+            name: string;
+            /**
+             * Model
+             * @default
+             */
+            model: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /** Fallback */
+            fallback?: string | null;
+            /**
+             * Thinking
+             * @default false
+             */
+            thinking: boolean;
+            /**
+             * Max Tokens
+             * @default 6000
+             */
+            max_tokens: number;
+            /**
+             * Temperature
+             * @default 0.3
+             */
+            temperature: number;
+            /** Prompt */
+            prompt?: string | null;
+            /**
+             * Lead
+             * @default false
+             */
+            lead: boolean;
+            /**
+             * External
+             * @default false
+             */
+            external: boolean;
+            /**
+             * Deputy
+             * @default false
+             */
+            deputy: boolean;
+            /**
+             * Icon
+             * @default
+             */
+            icon: string;
+            /**
+             * Tools
+             * @default []
+             */
+            tools: string[];
+            /**
+             * Team
+             * @default
+             */
+            team: string;
+        };
+        /**
+         * RoleOut
+         * @description Агент: настройки плюс текущий промпт.
+         */
+        RoleOut: {
+            /** Name */
+            name: string;
+            /** Model */
+            model: string;
+            /** Fallback */
+            fallback?: string | null;
+            /**
+             * Thinking
+             * @default false
+             */
+            thinking: boolean;
+            /**
+             * Max Tokens
+             * @default 4000
+             */
+            max_tokens: number;
+            /**
+             * Temperature
+             * @default 0.3
+             */
+            temperature: number;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /**
+             * Prompt
+             * @default
+             */
+            prompt: string;
+            /**
+             * Lead
+             * @default false
+             */
+            lead: boolean;
+            /**
+             * External
+             * @default false
+             */
+            external: boolean;
+            /**
+             * Deputy
+             * @default false
+             */
+            deputy: boolean;
+            /**
+             * Icon
+             * @default
+             */
+            icon: string;
+            /**
+             * Tools
+             * @default []
+             */
+            tools: string[];
+            /**
+             * Team
+             * @default
+             */
+            team: string;
+        };
+        /** RoleStat */
+        RoleStat: {
+            /**
+             * Calls
+             * @default 0
+             */
+            calls: number;
+            /**
+             * Cost
+             * @default 0
+             */
+            cost: number;
+            /**
+             * Tokens In
+             * @default 0
+             */
+            tokens_in: number;
+            /**
+             * Tokens Out
+             * @default 0
+             */
+            tokens_out: number;
+            /**
+             * Tokens Cached
+             * @default 0
+             */
+            tokens_cached: number;
+            /**
+             * Tokens Reasoning
+             * @default 0
+             */
+            tokens_reasoning: number;
+            /**
+             * Seconds
+             * @default 0
+             */
+            seconds: number;
+            /**
+             * Errors
+             * @default 0
+             */
+            errors: number;
+            /**
+             * By Model
+             * @default {}
+             */
+            by_model: {
+                [key: string]: components["schemas"]["Slot"];
+            };
+        };
+        /**
+         * RulesFoundOut
+         * @description Что нашлось по маскам правил: сам каталог, файлы и маски, по которым искали.
+         */
+        RulesFoundOut: {
+            /** Repo */
+            repo: string;
+            /** Files */
+            files: string[];
+            /** Patterns */
+            patterns: string[];
+        };
+        /** RulesIn */
+        RulesIn: {
+            /** Project */
+            project: string;
+            /** Repo */
+            repo: string;
+            /**
+             * Compress
+             * @default true
+             */
+            compress: boolean;
+        };
+        /** RunOut */
+        RunOut: {
+            /** Text */
+            text: string;
+            /** Model */
+            model: string;
+            /** Cost */
+            cost: number;
+            /** Seconds */
+            seconds: number;
+            /** Tokens In */
+            tokens_in: number;
+            /** Tokens Out */
+            tokens_out: number;
+            /** Reasoning */
+            reasoning: number;
+        };
+        /** SavedOut */
+        SavedOut: {
+            /**
+             * Ok
+             * @default true
+             */
+            ok: boolean;
+            /** Id */
+            id?: string | null;
+            /** Title */
+            title?: string | null;
+            /** Name */
+            name?: string | null;
+            /** Chars */
+            chars?: number | null;
+            /** File */
+            file?: string | null;
+        };
+        /**
+         * ScopeOut
+         * @description Область действия регламента: всё пространство или отдельный отдел.
+         */
+        ScopeOut: {
+            /** Key */
+            key: string;
+            /** Title */
+            title: string;
+        };
+        /**
+         * SetupIn
+         * @description Назначения команды пространства: ключ служебного действия → имя роли.
+         */
+        SetupIn: {
+            /** Project */
+            project: string;
+            /** Assignments */
+            assignments: {
+                [key: string]: string;
+            };
+        };
+        /**
+         * SetupOut
+         * @description Устройство команды: что можно выдать роли, кто чем занят и какие есть отделы.
+         */
+        SetupOut: {
+            /** Tools */
+            tools: components["schemas"]["ToolOut"][];
+            /** Assignments */
+            assignments: components["schemas"]["AssignmentOut"][];
+            /**
+             * Teams
+             * @default []
+             */
+            teams: components["schemas"]["TeamOut"][];
+        };
+        /**
+         * Slot
+         * @description Срез расхода: сколько вызовов, токенов и денег ушло в этом разрезе.
+         */
+        Slot: {
+            /**
+             * Calls
+             * @default 0
+             */
+            calls: number;
+            /**
+             * Cost
+             * @default 0
+             */
+            cost: number;
+            /**
+             * Tokens In
+             * @default 0
+             */
+            tokens_in: number;
+            /**
+             * Tokens Out
+             * @default 0
+             */
+            tokens_out: number;
+            /**
+             * Tokens Cached
+             * @default 0
+             */
+            tokens_cached: number;
+            /**
+             * Tokens Reasoning
+             * @default 0
+             */
+            tokens_reasoning: number;
+            /**
+             * Seconds
+             * @default 0
+             */
+            seconds: number;
+            /**
+             * Errors
+             * @default 0
+             */
+            errors: number;
+        };
+        /** StateOut */
+        StateOut: {
+            /** Roles */
+            roles: components["schemas"]["RoleOut"][];
+            /** Projects */
+            projects: components["schemas"]["ProjectOut"][];
+            /** Models */
+            models: {
+                [key: string]: components["schemas"]["ModelOut"];
+            };
+            /** Providers */
+            providers: components["schemas"]["ProviderOut"][];
+            totals: components["schemas"]["Totals"];
+            /** Balance */
+            balance?: number | null;
+        };
+        /** StatsOut */
+        StatsOut: {
+            total: components["schemas"]["Slot"];
+            total_24h: components["schemas"]["Slot"];
+            /** Projects */
+            projects: {
+                [key: string]: components["schemas"]["ProjectStat"];
+            };
+            /** Models */
+            models: {
+                [key: string]: components["schemas"]["ModelStat"];
+            };
+            /** Roles */
+            roles: {
+                [key: string]: components["schemas"]["RoleStat"];
+            };
+            /** Daily */
+            daily: components["schemas"]["DayStat"][];
+            claude: components["schemas"]["ClaudeStat"];
+        };
+        /** TaskIn */
+        TaskIn: {
+            /** Role */
+            role: string;
+            /** Task */
+            task: string;
+            /**
+             * Project
+             * @default
+             */
+            project: string;
+            /**
+             * Extra
+             * @default
+             */
+            extra: string;
+        };
+        /**
+         * TeamIn
+         * @description Отдел из формы. Отдел принадлежит пространству, как и вся его команда.
+         */
+        TeamIn: {
+            /** Project */
+            project: string;
+            /** Name */
+            name: string;
+            /**
+             * Title
+             * @default
+             */
+            title: string;
+            /** Description */
+            description?: string | null;
+        };
+        /**
+         * TeamOut
+         * @description Отдел: группа агентов с общими регламентами.
+         */
+        TeamOut: {
+            /** Name */
+            name: string;
+            /**
+             * Title
+             * @default
+             */
+            title: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /**
+             * Project
+             * @default
+             */
+            project: string;
+        };
+        /** TextIn */
+        TextIn: {
+            /** Project */
+            project: string;
+            /** Text */
+            text: string;
+            /**
+             * Question
+             * @default
+             */
+            question: string;
+            /**
+             * Source
+             * @default
+             */
+            source: string;
+        };
+        /**
+         * ToolOut
+         * @description Инструмент: право, которое приложение выдаёт роли.
+         */
+        ToolOut: {
+            /** Key */
+            key: string;
+            /** Title */
+            title: string;
+        };
+        /**
+         * Totals
+         * @description Сводка из журнала — то, что висит в шапке.
+         */
+        Totals: {
+            /**
+             * Calls
+             * @default 0
+             */
+            calls: number;
+            /**
+             * Cost
+             * @default 0
+             */
+            cost: number;
+            /**
+             * Tokens In
+             * @default 0
+             */
+            tokens_in: number;
+            /**
+             * Tokens Out
+             * @default 0
+             */
+            tokens_out: number;
+            /**
+             * Calls 24H
+             * @default 0
+             */
+            calls_24h: number;
+            /**
+             * Cost 24H
+             * @default 0
+             */
+            cost_24h: number;
+            /**
+             * Errors
+             * @default 0
+             */
+            errors: number;
+            /**
+             * By Model
+             * @default {}
+             */
+            by_model: {
+                [key: string]: {
+                    [key: string]: unknown;
+                };
+            };
+            /**
+             * By Role
+             * @default {}
+             */
+            by_role: {
+                [key: string]: {
+                    [key: string]: unknown;
+                };
+            };
+            /**
+             * By Project
+             * @default {}
+             */
+            by_project: {
+                [key: string]: {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        /** Turn */
+        Turn: {
+            /** Speaker */
+            speaker: string;
+            /** Model */
+            model: string;
+            /** Text */
+            text: string;
+        };
+        /** UploadOut */
+        UploadOut: {
+            /** Kind */
+            kind: string;
+            /** Note */
+            note: string;
+            /** Model */
+            model: string;
+            /** Cost */
+            cost: number;
+            /** Source */
+            source: string;
+            /** Name */
+            name: string;
+            /** Stored */
+            stored: string;
+            /** Bytes */
+            bytes: number;
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+        };
+    };
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
 }
-export type $defs = Record<string, never>
+export type $defs = Record<string, never>;
 export interface operations {
-	state_api_state_get: {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		requestBody?: never
-		responses: {
-			/** @description Successful Response */
-			200: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['StateOut']
-				}
-			}
-		}
-	}
-	events_api_events_get: {
-		parameters: {
-			query?: {
-				since?: number
-				limit?: number
-			}
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		requestBody?: never
-		responses: {
-			/** @description Successful Response */
-			200: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['EventsOut']
-				}
-			}
-			/** @description Validation Error */
-			422: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['HTTPValidationError']
-				}
-			}
-		}
-	}
-	statistics_api_stats_get: {
-		parameters: {
-			query?: {
-				days?: number
-				project?: string
-			}
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		requestBody?: never
-		responses: {
-			/** @description Successful Response */
-			200: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['StatsOut']
-				}
-			}
-			/** @description Validation Error */
-			422: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['HTTPValidationError']
-				}
-			}
-		}
-	}
-	call_detail_api_call__call_id__get: {
-		parameters: {
-			query?: never
-			header?: never
-			path: {
-				call_id: string
-			}
-			cookie?: never
-		}
-		requestBody?: never
-		responses: {
-			/** @description Successful Response */
-			200: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['CallOut']
-				}
-			}
-			/** @description Validation Error */
-			422: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['HTTPValidationError']
-				}
-			}
-		}
-	}
-	save_prompt_api_prompt_post: {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		requestBody: {
-			content: {
-				'application/json': components['schemas']['PromptIn']
-			}
-		}
-		responses: {
-			/** @description Successful Response */
-			200: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['SavedOut']
-				}
-			}
-			/** @description Validation Error */
-			422: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['HTTPValidationError']
-				}
-			}
-		}
-	}
-	role_save_api_role_post: {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		requestBody: {
-			content: {
-				'application/json': components['schemas']['RoleIn']
-			}
-		}
-		responses: {
-			/** @description Successful Response */
-			200: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['SavedOut']
-				}
-			}
-			/** @description Validation Error */
-			422: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['HTTPValidationError']
-				}
-			}
-		}
-	}
-	role_delete_api_role__name__delete: {
-		parameters: {
-			query?: never
-			header?: never
-			path: {
-				name: string
-			}
-			cookie?: never
-		}
-		requestBody?: never
-		responses: {
-			/** @description Successful Response */
-			200: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['SavedOut']
-				}
-			}
-			/** @description Validation Error */
-			422: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['HTTPValidationError']
-				}
-			}
-		}
-	}
-	project_save_api_project_post: {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		requestBody: {
-			content: {
-				'application/json': components['schemas']['ProjectIn']
-			}
-		}
-		responses: {
-			/** @description Successful Response */
-			200: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['SavedOut']
-				}
-			}
-			/** @description Validation Error */
-			422: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['HTTPValidationError']
-				}
-			}
-		}
-	}
-	project_delete_api_project__pid__delete: {
-		parameters: {
-			query?: never
-			header?: never
-			path: {
-				pid: string
-			}
-			cookie?: never
-		}
-		requestBody?: never
-		responses: {
-			/** @description Successful Response */
-			200: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['SavedOut']
-				}
-			}
-			/** @description Validation Error */
-			422: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['HTTPValidationError']
-				}
-			}
-		}
-	}
-	run_api_run_post: {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		requestBody: {
-			content: {
-				'application/json': components['schemas']['TaskIn']
-			}
-		}
-		responses: {
-			/** @description Successful Response */
-			200: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['RunOut']
-				}
-			}
-			/** @description Validation Error */
-			422: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['HTTPValidationError']
-				}
-			}
-		}
-	}
-	council_api_council_post: {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		requestBody: {
-			content: {
-				'application/json': components['schemas']['TaskIn']
-			}
-		}
-		responses: {
-			/** @description Successful Response */
-			200: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['CouncilOut']
-				}
-			}
-			/** @description Validation Error */
-			422: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['HTTPValidationError']
-				}
-			}
-		}
-	}
-	ctx_list_api_context__project__get: {
-		parameters: {
-			query?: never
-			header?: never
-			path: {
-				project: string
-			}
-			cookie?: never
-		}
-		requestBody?: never
-		responses: {
-			/** @description Successful Response */
-			200: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['ContextOut']
-				}
-			}
-			/** @description Validation Error */
-			422: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['HTTPValidationError']
-				}
-			}
-		}
-	}
-	ctx_save_api_context_post: {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		requestBody: {
-			content: {
-				'application/json': components['schemas']['NoteIn']
-			}
-		}
-		responses: {
-			/** @description Successful Response */
-			200: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['SavedOut']
-				}
-			}
-			/** @description Validation Error */
-			422: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['HTTPValidationError']
-				}
-			}
-		}
-	}
-	upload_api_upload_post: {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		requestBody: {
-			content: {
-				'multipart/form-data': components['schemas']['Body_upload_api_upload_post']
-			}
-		}
-		responses: {
-			/** @description Successful Response */
-			200: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['UploadOut']
-				}
-			}
-			/** @description Validation Error */
-			422: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['HTTPValidationError']
-				}
-			}
-		}
-	}
-	provider_save_api_provider_post: {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		requestBody: {
-			content: {
-				'application/json': components['schemas']['ProviderIn']
-			}
-		}
-		responses: {
-			/** @description Successful Response */
-			200: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['SavedOut']
-				}
-			}
-			/** @description Validation Error */
-			422: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['HTTPValidationError']
-				}
-			}
-		}
-	}
-	provider_delete_api_provider__name__delete: {
-		parameters: {
-			query?: never
-			header?: never
-			path: {
-				name: string
-			}
-			cookie?: never
-		}
-		requestBody?: never
-		responses: {
-			/** @description Successful Response */
-			200: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['SavedOut']
-				}
-			}
-			/** @description Validation Error */
-			422: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['HTTPValidationError']
-				}
-			}
-		}
-	}
-	model_save_api_model_post: {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		requestBody: {
-			content: {
-				'application/json': components['schemas']['ModelIn']
-			}
-		}
-		responses: {
-			/** @description Successful Response */
-			200: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['SavedOut']
-				}
-			}
-			/** @description Validation Error */
-			422: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['HTTPValidationError']
-				}
-			}
-		}
-	}
-	model_delete_api_model_delete: {
-		parameters: {
-			query: {
-				id: string
-			}
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		requestBody?: never
-		responses: {
-			/** @description Successful Response */
-			200: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['SavedOut']
-				}
-			}
-			/** @description Validation Error */
-			422: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['HTTPValidationError']
-				}
-			}
-		}
-	}
-	provider_check_api_provider__name__check_post: {
-		parameters: {
-			query?: {
-				model?: string
-			}
-			header?: never
-			path: {
-				name: string
-			}
-			cookie?: never
-		}
-		requestBody?: never
-		responses: {
-			/** @description Successful Response */
-			200: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['CheckOut']
-				}
-			}
-			/** @description Validation Error */
-			422: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['HTTPValidationError']
-				}
-			}
-		}
-	}
-	intake_text_api_intake_text_post: {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		requestBody: {
-			content: {
-				'application/json': components['schemas']['TextIn']
-			}
-		}
-		responses: {
-			/** @description Successful Response */
-			200: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['UploadOut']
-				}
-			}
-			/** @description Validation Error */
-			422: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['HTTPValidationError']
-				}
-			}
-		}
-	}
-	workspace_rules_api_workspace_rules_post: {
-		parameters: {
-			query?: never
-			header?: never
-			path?: never
-			cookie?: never
-		}
-		requestBody: {
-			content: {
-				'application/json': components['schemas']['RulesIn']
-			}
-		}
-		responses: {
-			/** @description Successful Response */
-			200: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['UploadOut']
-				}
-			}
-			/** @description Validation Error */
-			422: {
-				headers: {
-					[name: string]: unknown
-				}
-				content: {
-					'application/json': components['schemas']['HTTPValidationError']
-				}
-			}
-		}
-	}
+    state_api_state_get: {
+        parameters: {
+            query?: {
+                project?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StateOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    events_api_events_get: {
+        parameters: {
+            query?: {
+                since?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    statistics_api_stats_get: {
+        parameters: {
+            query?: {
+                days?: number;
+                project?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    call_detail_api_call__call_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                call_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CallOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    team_setup_api_team_setup_get: {
+        parameters: {
+            query?: {
+                project?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_team_setup_api_team_setup_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetupIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_hints_api_hints_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HintsOut"];
+                };
+            };
+        };
+    };
+    save_hints_api_hints_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HintsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_prompts_api_prompts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromptsOut"];
+                };
+            };
+        };
+    };
+    save_prompts_api_prompts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromptsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_api_org_get: {
+        parameters: {
+            query?: {
+                project?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrgOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_team_save_api_org_team_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TeamIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_team_delete_api_org_team__name__delete: {
+        parameters: {
+            query: {
+                project: string;
+            };
+            header?: never;
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_doc_api_org_doc__doc_id__get: {
+        parameters: {
+            query: {
+                project: string;
+            };
+            header?: never;
+            path: {
+                doc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocTextOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_doc_delete_api_org_doc__doc_id__delete: {
+        parameters: {
+            query: {
+                project: string;
+            };
+            header?: never;
+            path: {
+                doc_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_doc_save_api_org_doc_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DocIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    org_doc_upload_api_org_doc_upload_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_org_doc_upload_api_org_doc_upload_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocTextOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    team_chart_api_team_chart_get: {
+        parameters: {
+            query: {
+                project: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChartOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    team_chart_markdown_api_team_chart_md_get: {
+        parameters: {
+            query: {
+                project: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_role_avatar_api_role__name__avatar_get: {
+        parameters: {
+            query: {
+                project: string;
+            };
+            header?: never;
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_role_avatar_api_role__name__avatar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_save_role_avatar_api_role__name__avatar_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_role_avatar_api_role__name__avatar_delete: {
+        parameters: {
+            query: {
+                project: string;
+            };
+            header?: never;
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_prompt_api_prompt_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromptIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    role_save_api_role_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RoleIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    role_delete_api_role__name__delete: {
+        parameters: {
+            query: {
+                project: string;
+            };
+            header?: never;
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    project_save_api_project_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    project_delete_api_project__pid__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_chat_api_chat_get: {
+        parameters: {
+            query?: {
+                project?: string;
+                limit?: number;
+                since?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_chat_api_chat_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_jobs_api_jobs_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_job_api_jobs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JobIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_job_api_jobs__job_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_api_run_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    council_api_council_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CouncilOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ctx_list_api_context__project__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContextOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ctx_save_api_context_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NoteIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_api_upload_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_api_upload_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    provider_save_api_provider_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProviderIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    provider_delete_api_provider__name__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    provider_catalog_api_provider__name__models_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CatalogOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    model_save_api_model_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModelIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    model_delete_api_model_delete: {
+        parameters: {
+            query: {
+                id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    provider_check_api_provider__name__check_post: {
+        parameters: {
+            query?: {
+                model?: string;
+            };
+            header?: never;
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    intake_text_api_intake_text_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TextIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_dirs_api_fs_dirs_get: {
+        parameters: {
+            query?: {
+                path?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DirsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workspace_rules_probe_api_workspace_rules_probe_get: {
+        parameters: {
+            query?: {
+                project?: string;
+                repo?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RulesFoundOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workspace_rules_api_workspace_rules_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RulesIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
 }

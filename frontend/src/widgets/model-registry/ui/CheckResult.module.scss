@@ -10,11 +10,11 @@
 }
 
 .ok {
-	background: rgb(34 197 94 / 0.12);
-	color: var(--accent);
+	background: color-mix(in oklab, var(--ok) 14%, transparent);
+	color: var(--ok);
 }
 
 .fail {
-	background: rgb(248 113 113 / 0.12);
+	background: color-mix(in oklab, var(--danger) 14%, transparent);
 	color: var(--danger);
 }

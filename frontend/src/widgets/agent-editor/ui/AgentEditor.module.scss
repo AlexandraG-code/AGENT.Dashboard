@@ -18,3 +18,90 @@
 	color: var(--text-dim);
 	font-size: 0.82rem;
 }
+
+// Поля, которым нужна вся ширина формы: длинные списки и наборы отметок.
+.wide {
+	flex: 1 1 100%;
+}
+
+// Служебные места команды: по колонке на каждое, чтобы список не растягивался в столбик.
+.assignments {
+	display: grid;
+	gap: 0 var(--gap-3);
+	grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+
+.setup {
+	grid-column: 1 / -1;
+}
+
+// Кнопки подсказок над полем промпта: их много, поэтому переносятся по строкам.
+.hints {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--gap-1);
+	margin-bottom: var(--gap-2);
+}
+
+.column {
+	display: grid;
+	gap: var(--gap-2);
+	align-content: start;
+}
+
+.actions {
+	display: flex;
+	gap: var(--gap-1);
+	flex-wrap: wrap;
+	margin-bottom: var(--gap-2);
+}
+
+.membersTitle {
+	margin: var(--gap-3) 0 var(--gap-1);
+	font-size: 0.95rem;
+}
+
+// Плитка агентов отдела: карточка размером с аватар и подпись, а не строка
+// списка — так видно, кто в отделе, одним взглядом.
+.members {
+	display: grid;
+	gap: var(--gap-2);
+	grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+}
+
+.member,
+.add {
+	display: grid;
+	justify-items: center;
+	gap: 0.25rem;
+	padding: var(--gap-2);
+	border: 1px solid var(--line);
+	border-radius: var(--radius-sm);
+	background: transparent;
+	color: inherit;
+	cursor: pointer;
+
+	&:hover {
+		border-color: var(--accent);
+	}
+}
+
+.add {
+	align-content: center;
+	color: var(--accent);
+	border-style: dashed;
+}
+
+.memberIcon {
+	font-size: 1.6rem;
+}
+
+.memberName {
+	font-weight: 600;
+}
+
+.memberNote {
+	color: var(--text-dim);
+	font-size: 0.78rem;
+	font-family: var(--font-mono);
+}

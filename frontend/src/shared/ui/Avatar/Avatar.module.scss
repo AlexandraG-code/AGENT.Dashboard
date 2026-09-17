@@ -1,0 +1,34 @@
+// Написано агентом junior (glm-5.3-flash) по ТЗ главного архитектора.
+// файл: frontend/src/shared/ui/Avatar/Avatar.module.scss
+
+@use '@/shared/styles/mixins' as *;
+
+// Размер управляется снаружи через --avatar-size: аватар встречается разных размеров,
+// а базовые 32px — дефолт, чтобы компонент работал без настроек.
+.avatar {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: none;
+	width: var(--avatar-size, 32px);
+	height: var(--avatar-size, 32px);
+	border-radius: 50%;
+	overflow: hidden;
+	background: var(--surface-2);
+	border: 1px solid var(--line);
+	font-size: calc(var(--avatar-size, 32px) * 0.55);
+	user-select: none;
+}
+
+// Картинка растягивается на весь кружок, обрезаясь по контуру контейнера.
+.image {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+// Инициалы вместо фото: сброшенный line-height центрирует текст по вертикали.
+.fallback {
+	line-height: 1;
+}

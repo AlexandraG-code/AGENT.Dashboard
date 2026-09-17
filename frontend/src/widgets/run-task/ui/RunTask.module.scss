@@ -1,16 +1,18 @@
 @use '@/shared/styles/mixins' as *;
 
+// Строка управления: два поля фиксированной ширины, кнопка и статус. Ширины в
+// rem, потому что кегль в интерфейсе настраивается и поля должны расти вместе с ним.
 .field {
-	width: 14rem;
+	width: 15rem;
 }
 
 .wide {
-	width: 20rem;
+	width: 22rem;
 }
 
 .meta {
 	@include mono;
-	padding-bottom: 0.35rem;
+	padding-bottom: 0.15rem;
 	font-size: 0.8rem;
 	color: var(--text-dim);
 }
@@ -20,12 +22,30 @@
 	max-height: 60vh;
 	overflow: auto;
 	margin: var(--gap-2) 0 0;
-	padding: var(--gap-2);
+	padding: var(--gap-3);
 	border: 1px solid var(--line);
 	border-radius: var(--radius-sm);
 	background: var(--surface-2);
-	font-size: 0.8rem;
-	line-height: 1.6;
+	font-size: 0.82rem;
+	line-height: 1.65;
 	white-space: pre-wrap;
 	overflow-wrap: break-word;
+}
+
+// Реплика агента в ленте ответа: шапка «кто и на какой модели» плюс текст.
+.step {
+	margin-top: var(--gap-2);
+}
+
+.stepHead {
+	display: flex;
+	align-items: baseline;
+	gap: var(--gap-2);
+	margin-bottom: 0.3rem;
+}
+
+.stepModel {
+	@include mono;
+	font-size: 0.75rem;
+	color: var(--text-mute);
 }

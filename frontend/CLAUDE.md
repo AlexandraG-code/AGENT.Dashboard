@@ -1,4 +1,4 @@
-# Интерфейс флота
+# Интерфейс команды
 
 Next.js 16 (App Router) + React 19 + TypeScript strict. UI-кит — **antd 5**, стили —
 **только SCSS-модули**. Архитектура — Feature-Sliced Design (FSD 2.0), границы проверяет steiger.
@@ -7,7 +7,7 @@ Next.js 16 (App Router) + React 19 + TypeScript strict. UI-кит — **antd 5**
 
 | Команда | Что делает |
 | --- | --- |
-| `yarn dev` | http://localhost:3000, `/api/*` проксируется на бэкенд (`FLEET_API`) |
+| `yarn dev` | http://localhost:3001, `/api/*` проксируется на бэкенд (`FLEET_API`) |
 | `yarn build` | сборка с проверкой типов |
 | `yarn generateApi` | типы из `/openapi.json` бэкенда (бэкенд должен быть запущен) |
 | `yarn lint` / `yarn lint:fsd` / `yarn format` | ESLint, границы FSD, Prettier |

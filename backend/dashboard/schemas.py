@@ -50,10 +50,18 @@ class ClaudeSlot(BaseModel):
 
 
 class ClaudeStat(BaseModel):
+    """Расход Claude Code.
+
+    `windows` — скользящие окна («h5» — за последние 5 часов, «d7» — за неделю).
+    Это объём работы, а не остаток лимита: сколько разрешено подпиской, Claude
+    Code наружу не отдаёт, и выдумывать процент нельзя.
+    """
+
     total: ClaudeSlot
     daily: dict[str, ClaudeSlot]
     models: dict[str, ClaudeSlot]
     projects: dict[str, ClaudeSlot]
+    windows: dict[str, ClaudeSlot] = {}
     available: bool = False
 
 
@@ -93,9 +101,17 @@ class RoleOut(BaseModel):
     temperature: float = 0.3
     description: str = ""
     prompt: str = ""
+    lead: bool = False
+    external: bool = False
+    deputy: bool = False
+    icon: str = ""
+    tools: list[str] = []
+    team: str = ""
 
 
 class ModelOut(BaseModel):
+    """Модель в реестре. `plan` — описание тарифа для человека, а не цена."""
+
     id: str = ""
     title: str = ""
     provider: str
@@ -104,6 +120,7 @@ class ModelOut(BaseModel):
     price_out: float = 0.0
     concurrency: int = 3
     vision: bool = False
+    plan: str = ""
 
 
 class ProviderOut(BaseModel):
@@ -118,11 +135,22 @@ class ProviderOut(BaseModel):
     send_thinking: bool = True
     builtin: bool = False
     has_key: bool = False
+    headers: dict[str, str] = {}
 
 
 class ProjectOut(BaseModel):
+    """Пространство: алиас и каталог клона, по которому оно опознаётся.
+
+    `repo` и `data_dir` — пути этой машины, они приходят из локального файла
+    и на другом устройстве будут другими (см. `fleet.paths`).
+    """
+
     id: str
     title: str
+    repo: str = ""
+    data_dir: str = ""
+    sign_code: bool = True
+    rule_globs: list[str] = []
 
 
 class StateOut(BaseModel):
@@ -256,3 +284,219 @@ class SavedOut(BaseModel):
     name: str | None = None
     chars: int | None = None
     file: str | None = None
+
+
+class DirEntry(BaseModel):
+    """Каталог в обзоре файловой системы."""
+
+    name: str
+    path: str
+    is_repo: bool = False
+
+
+class DirsOut(BaseModel):
+    """Содержимое каталога: сам путь, куда подняться и что внутри."""
+
+    path: str
+    parent: str | None = None
+    entries: list[DirEntry]
+
+
+class CatalogModel(BaseModel):
+    """Строка каталога провайдера. Поля — те, что прислал он сам."""
+
+    id: str
+    raw: str = ""
+    owned_by: str = ""
+    kind: str = ""
+    registered: bool = False
+
+
+class CatalogOut(BaseModel):
+    """Каталог моделей провайдера: что он отдаёт и что из этого уже заведено."""
+
+    provider: str
+    models: list[CatalogModel]
+
+
+# Написано агентом senior (deepseek-v4-pro) по ТЗ главного архитектора.
+class JobStepOut(BaseModel):
+    """Шаг выполнения задачи: кто сказал, какая модель, текст и время."""
+
+    speaker: str
+    model: str
+    text: str
+    at: float
+
+
+class JobOut(BaseModel):
+    """Карточка фоновой задачи: поля датакласса Job плюс шаги разговора."""
+
+    id: str
+    kind: str
+    project: str
+    role: str
+    task: str
+    status: str
+    started: float
+    finished: float | None = None
+    cost: float = 0.0
+    tokens_in: int = 0
+    tokens_out: int = 0
+    error: str = ""
+    steps: list[JobStepOut] = []
+    result: str = ""
+    source: str = "dashboard"
+    session: str = ""
+    apply_files: bool = False
+
+
+class JobsOut(BaseModel):
+    """Список задач и число активных."""
+
+    jobs: list[JobOut]
+    active: int
+
+
+class ChatMessageOut(BaseModel):
+    """Сообщение общего чата: кто написал, что и кого позвал."""
+
+    ts: float
+    author: str
+    text: str
+    mentions: list[str] = []
+    model: str = ""
+    cost: float = 0.0
+
+
+class ChatOut(BaseModel):
+    """Лента чата, старые сообщения сверху."""
+
+    messages: list[ChatMessageOut]
+
+
+class RulesFoundOut(BaseModel):
+    """Что нашлось по маскам правил: сам каталог, файлы и маски, по которым искали."""
+
+    repo: str
+    files: list[str]
+    patterns: list[str]
+
+
+class ChartRole(BaseModel):
+    """Роль в схеме команды: кто это и на чём работает."""
+
+    name: str
+    icon: str = ""
+    model: str = ""
+    provider: str = ""
+    description: str = ""
+    external: bool = False
+    fallback_model: str | None = None
+    plan: str = ""
+
+
+class ChartFailover(BaseModel):
+    """Что произойдёт, если роль отвалится: шаги подмены по порядку."""
+
+    role: str
+    icon: str = ""
+    on_fail: list[str] = []
+
+
+class ChartOut(BaseModel):
+    """Схема команды целиком: иерархия, подмены и текст диаграммы."""
+
+    lead: ChartRole | None = None
+    deputy: ChartRole | None = None
+    council: list[ChartRole] = []
+    workers: list[ChartRole] = []
+    failover: list[ChartFailover] = []
+    mermaid: str = ""
+
+
+class ToolOut(BaseModel):
+    """Инструмент: право, которое приложение выдаёт роли."""
+
+    key: str
+    title: str
+
+
+class AssignmentOut(BaseModel):
+    """Служебное место в команде и роль, которая его занимает."""
+
+    key: str
+    title: str
+    role: str = ""
+
+
+class SetupOut(BaseModel):
+    """Устройство команды: что можно выдать роли, кто чем занят и какие есть отделы."""
+
+    tools: list[ToolOut]
+    assignments: list[AssignmentOut]
+    teams: list["TeamOut"] = []
+
+
+class PromptOut(BaseModel):
+    """Служебный промпт: ключ, текст и допустимые подстановки."""
+
+    key: str
+    text: str = ""
+    placeholders: list[str] = []
+
+
+class PromptsOut(BaseModel):
+    prompts: list[PromptOut]
+
+
+class HintOut(BaseModel):
+    """Подсказка к системному промпту: заголовок кнопки и текст для вставки."""
+
+    key: str
+    title: str = ""
+    text: str
+
+
+class HintsOut(BaseModel):
+    hints: list[HintOut]
+
+
+class TeamOut(BaseModel):
+    """Отдел: группа агентов с общими регламентами."""
+
+    name: str
+    title: str = ""
+    description: str = ""
+    project: str = ""
+
+
+class ScopeOut(BaseModel):
+    """Область действия регламента: всё пространство или отдельный отдел."""
+
+    key: str
+    title: str
+
+
+class DocOut(BaseModel):
+    """Карточка регламента без текста: списку он не нужен, а весит страницы."""
+
+    id: str
+    title: str
+    scope: str = "space"
+    project: str = ""
+    team: str = ""
+    order: int = 0
+    chars: int = 0
+
+
+class DocTextOut(DocOut):
+    text: str = ""
+
+
+class OrgOut(BaseModel):
+    """Организационная часть: отделы, регламенты и доступные области."""
+
+    teams: list[TeamOut]
+    documents: list[DocOut]
+    scopes: list[ScopeOut]

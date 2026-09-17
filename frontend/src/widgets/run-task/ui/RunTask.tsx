@@ -1,6 +1,7 @@
 'use client'
+// Переписано агентом junior (glm-5.3-flash) по ТЗ главного архитектора.
 
-import { Button, Form, Input, Select } from 'antd'
+import { Alert, Button, Form, Input, Select } from 'antd'
 import { useTranslation } from 'react-i18next'
 
 import type { RoleOut } from '@/shared/api'
@@ -16,18 +17,19 @@ interface IRunTaskProps {
 
 /**
  * Запуск задачи прямо из интерфейса: одним агентом или советом, где консультант
- * предлагает решение, а оппонент его атакует.
+ * предлагает решение, а оппонент его атакует. Работа уходит в фон: результат
+ * доживает до возвращения на страницу, даже если вкладку закрыли.
  *
  * @param roles — состав команды для выбора исполнителя
  * @param project — выбранное пространство; его контекст подмешивает бэкенд
  */
 export function RunTask({ roles, project }: IRunTaskProps) {
 	const { t } = useTranslation()
-	const form = useRunTask(project)
+	const form = useRunTask(project, roles[0]?.name ?? '')
 
 	return (
 		<Panel>
-			<Toolbar>
+			<Toolbar error={form.error}>
 				<Form.Item label={t('run.agent')} className={styles.field} layout="vertical">
 					<Select
 						value={form.role || roles[0]?.name}
@@ -53,7 +55,16 @@ export function RunTask({ roles, project }: IRunTaskProps) {
 				>
 					{form.busy ? t('run.working') : t('run.start')}
 				</Button>
-				<span className={styles.meta}>{form.meta}</span>
+				<span className={styles.meta}>
+					{form.job
+						? t('run.jobMeta', {
+								status: t(`activity.status_${form.job.status}`),
+								cost: form.job.cost,
+								in: form.job.tokens_in,
+								out: form.job.tokens_out
+							})
+						: ''}
+				</span>
 			</Toolbar>
 
 			<Form.Item label={t('run.task')} help={t('run.taskHint')} layout="vertical">
@@ -63,7 +74,16 @@ export function RunTask({ roles, project }: IRunTaskProps) {
 				<Input.TextArea rows={4} value={form.extra} onChange={(e) => form.setExtra(e.target.value)} />
 			</Form.Item>
 
-			{form.output && <pre className={styles.output}>{form.output}</pre>}
+			{form.job && form.job.error !== '' && <Alert type="error" message={form.job.error} />}
+			{form.job?.steps.map((step, index) => (
+				<article key={`${step.at}-${index}`} className={styles.step}>
+					<header className={styles.stepHead}>
+						<b>{step.speaker}</b>
+						<span className={styles.stepModel}>{step.model}</span>
+					</header>
+					<pre className={styles.output}>{step.text}</pre>
+				</article>
+			))}
 		</Panel>
 	)
 }

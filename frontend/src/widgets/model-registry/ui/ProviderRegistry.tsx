@@ -84,7 +84,8 @@ export function ProviderRegistry({ providers, onChanged }: IProviderRegistryProp
 							options={[
 								{ value: 'bearer', label: t('providers.authBearer') },
 								{ value: 'api-key', label: t('providers.authApiKey') },
-								{ value: 'gigachat', label: t('providers.authGigachat') }
+								{ value: 'gigachat', label: t('providers.authGigachat') },
+								{ value: 'anthropic', label: t('providers.authAnthropic') }
 							]}
 						/>
 					</Form.Item>
@@ -103,6 +104,14 @@ export function ProviderRegistry({ providers, onChanged }: IProviderRegistryProp
 							value={form.draft.key_env}
 							placeholder="YANDEX_API_KEY"
 							onChange={(e) => form.patch('key_env', e.target.value)}
+						/>
+					</Form.Item>
+					<Form.Item label={t('providers.headers')} help={t('providers.headersHint')}>
+						<Input.TextArea
+							rows={2}
+							value={form.draft.headers}
+							placeholder="x-folder-id: b1g..."
+							onChange={(e) => form.patch('headers', e.target.value)}
 						/>
 					</Form.Item>
 				</div>

@@ -1,0 +1,13 @@
+// Размер знака задаётся переменной --globe, чтобы одну и ту же сферу можно было
+// поставить и в шапку, и крупнее, не трогая компонент.
+.mark {
+	display: inline-flex;
+	flex: none;
+	width: var(--globe, 2.2rem);
+	height: var(--globe, 2.2rem);
+}
+
+.canvas {
+	width: 100%;
+	height: 100%;
+}

@@ -1,13 +1,13 @@
 'use client'
 
-import { Tag } from 'antd'
+import { Input, Segmented, Spin, Tag } from 'antd'
 import clsx from 'clsx'
 import { useTranslation } from 'react-i18next'
 
 import type { EventOut } from '@/shared/api'
 import { money, timeOnly, tokens } from '@/shared/lib/format'
 
-import { useCallFeed } from '../model/useCallFeed'
+import { useCallFeed, type Period } from '../model/useCallFeed'
 import styles from './CallFeed.module.scss'
 
 interface ICallFeedProps {
@@ -15,15 +15,23 @@ interface ICallFeedProps {
 }
 
 /**
- * Живая лента вызовов флота: время, роль, модель, задача, токены и цена.
+ * Живой журнал команды: время, роль, модель, задача, токены и цена.
+ *
+ * В колонке модели стоит модель и только она: у служебных событий (импорт
+ * правил, сохранение агента) модели нет, и раньше туда подставлялось
+ * пространство — из-за чего проект читался как название модели.
  * Строка вызова кликабельна и открывает разбор — там видно, что именно ушло
  * в модель и что она ответила.
+ *
+ * Показывается история за выбранный период плюс живой хвост; длинный журнал
+ * прокручивается внутри панели, а не растягивает страницу.
  *
  * @param onSelect — открыть разбор вызова по его идентификатору
  */
 export function CallFeed({ onSelect }: ICallFeedProps) {
 	const { t } = useTranslation()
-	const { events, error } = useCallFeed()
+	const feed = useCallFeed()
+	const { events, error } = feed
 
 	const renderRow = (event: EventOut, index: number) => {
 		const isCall = event.event === 'call'
@@ -37,15 +45,15 @@ export function CallFeed({ onSelect }: ICallFeedProps) {
 				{isError ? (
 					<Tag color="error">{t('feed.error')}</Tag>
 				) : (
-					<Tag>{isCall ? (event.role ?? '—') : event.event}</Tag>
+					<Tag>{isCall ? (event.role ?? '—') : t(`feed.events.${event.event}`, { defaultValue: event.event })}</Tag>
 				)}
-				<span className={styles.dim}>{event.model ?? event.project ?? ''}</span>
+				<span className={styles.dim}>{event.model ?? ''}</span>
 				<span className={clsx(styles.task, isError && styles.error)}>
 					{isError
 						? (event.error ?? '')
 						: isCall
 							? (event.task ?? '')
-							: (event.name ?? event.topic ?? event.query ?? event.role ?? '')}
+							: (event.name ?? event.topic ?? event.query ?? event.role ?? event.project ?? '')}
 				</span>
 				<span className={clsx(styles.right, styles.dim)}>
 					{isCall ? `${tokens(event.tokens_in ?? 0)}→${tokens(event.tokens_out ?? 0)}` : ''}
@@ -73,17 +81,50 @@ export function CallFeed({ onSelect }: ICallFeedProps) {
 	}
 
 	return (
-		<div className={styles.feed}>
-			<div className={clsx(styles.row, styles.head)}>
-				<span>{t('feed.time')}</span>
-				<span>{t('common.role')}</span>
-				<span>{t('common.model')}</span>
-				<span>{t('feed.task')}</span>
-				<span className={styles.right}>{t('common.tokens')}</span>
-				<span className={styles.right}>$</span>
+		<div className={styles.wrap}>
+			<div className={styles.filters}>
+				<Segmented<Period>
+					value={feed.period}
+					onChange={feed.setPeriod}
+					options={[
+						{ value: 'hour', label: t('feed.periodHour') },
+						{ value: 'day', label: t('feed.periodDay') },
+						{ value: 'week', label: t('feed.periodWeek') },
+						{ value: 'month', label: t('feed.periodMonth') },
+						{ value: 'all', label: t('feed.periodAll') }
+					]}
+				/>
+				<Input.Search
+					className={styles.search}
+					value={feed.query}
+					allowClear
+					placeholder={t('feed.searchPlaceholder')}
+					onChange={(e) => feed.setQuery(e.target.value)}
+				/>
+				<span className={styles.count}>{t('feed.shown', { shown: events.length, total: feed.total })}</span>
 			</div>
-			{error && <div className={clsx(styles.row, styles.dim)}>{error}</div>}
-			{events.map(renderRow)}
+
+			<div className={styles.feed}>
+				<div className={clsx(styles.row, styles.head)}>
+					<span>{t('feed.time')}</span>
+					<span>{t('common.role')}</span>
+					<span>{t('common.model')}</span>
+					<span>{t('feed.task')}</span>
+					<span className={styles.right}>{t('common.tokens')}</span>
+					<span className={styles.right}>$</span>
+				</div>
+				<div className={styles.scroll}>
+					{error && <div className={clsx(styles.row, styles.dim)}>{error}</div>}
+					{feed.loading ? (
+						<Spin description={t('app.loading')} />
+					) : (
+						events.map(renderRow)
+					)}
+					{!feed.loading && events.length === 0 && (
+						<div className={clsx(styles.row, styles.dim)}>{t('feed.empty')}</div>
+					)}
+				</div>
+			</div>
 		</div>
 	)
 }

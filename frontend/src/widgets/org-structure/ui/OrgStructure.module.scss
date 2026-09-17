@@ -1,0 +1,31 @@
+.root {
+	display: grid;
+	gap: var(--gap-2);
+}
+
+// Вкладки виджета вложены во вкладки страницы, поэтому отступ сверху им не нужен.
+.root .tabs {
+	margin-top: 0;
+}
+
+.layout {
+	display: grid;
+	gap: var(--gap-2);
+	align-items: start;
+
+	@media (min-width: 1024px) {
+		grid-template-columns: 16rem 1fr;
+	}
+}
+
+.fields {
+	display: grid;
+	gap: 0 var(--gap-2);
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.actions {
+	display: flex;
+	gap: var(--gap-1);
+	flex-wrap: wrap;
+}

@@ -18,7 +18,37 @@
 }
 
 .cached {
-	color: var(--accent);
+	color: var(--ok);
+}
+
+// Окна расхода: два блока рядом, значения моноширинно — их сравнивают глазами.
+.windows {
+	display: grid;
+	gap: var(--gap-2);
+	grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+
+.window {
+	@include glass(var(--radius-sm));
+	display: flex;
+	flex-direction: column;
+	gap: 0.2rem;
+	padding: var(--gap-2);
+}
+
+.windowLabel {
+	@include caption;
+}
+
+.windowValue {
+	@include mono;
+	font-size: 0.95rem;
+}
+
+.note {
+	margin: 0;
+	color: var(--text-mute);
+	font-size: 0.78rem;
 }
 
 .caption {

@@ -1,131 +1,147 @@
 'use client'
 
-import { Button, Form, Input, InputNumber, Select, Switch } from 'antd'
+import { Alert, Form, Select } from 'antd'
 import { useTranslation } from 'react-i18next'
 
 import type { ModelOut, RoleOut } from '@/shared/api'
-import { NavList, Panel, Toolbar } from '@/shared/ui'
+import { useOrg } from '@/shared/model'
+import { NavList, Panel } from '@/shared/ui'
 
 import { useAgentForm } from '../model/useAgentForm'
+import { useHints } from '../model/useHints'
+import { useTeamForm } from '../model/useTeamForm'
+import { useTeamSetup } from '../model/useTeamSetup'
+import { AgentModal } from './AgentModal'
+import { TeamCard } from './TeamCard'
 import styles from './AgentEditor.module.scss'
 
 interface IAgentEditorProps {
+	project: string
 	roles: RoleOut[]
 	models: Record<string, ModelOut>
 	onChanged: () => Promise<void> | void
 }
 
-/**
- * Состав команды: слева агенты, справа настройки и системный промпт выбранного.
- * Имя существующего агента не редактируется — переименование завело бы вторую
- * роль с тем же промптом, а промпты лежат в файлах по имени роли.
- *
- * @param roles — агенты с бэкенда
- * @param models — реестр моделей для основного и резервного выбора
- * @param onChanged — перечитать состояние приложения после сохранения или удаления
- */
-export function AgentEditor({ roles, models, onChanged }: IAgentEditorProps) {
-	const { t } = useTranslation()
-	const form = useAgentForm(roles, models, onChanged)
+/** Отдел для агентов без приписки: он не хранится, а собирается на лету. */
+const FREE = '-'
 
-	const modelOptions = Object.entries(models).map(([id, model]) => ({
-		value: id,
-		label: `${id} — ${model.price_out > 0 ? t('common.perMillion', { price: model.price_out }) : t('common.free')}`
-	}))
+/**
+ * Состав команды: слева отделы, справа отдел с его правилами и агентами.
+ * Карточка агента открывается поверх — так список остаётся перед глазами.
+ *
+ * @param project — пространство: состав команды принадлежит ему
+ * @param roles — агенты с бэкенда
+ * @param models — реестр моделей для карточки агента
+ * @param onChanged — перечитать состояние приложения после изменений
+ */
+export function AgentEditor({ project, roles, models, onChanged }: IAgentEditorProps) {
+	const { t } = useTranslation()
+	const form = useAgentForm(project, roles, models, onChanged)
+	const setup = useTeamSetup(project)
+	const hints = useHints()
+	const org = useOrg(project)
+	const teamForm = useTeamForm(project)
+
+	const current = teamForm.selected || FREE
+	const members = roles.filter((role) => (role.team || FREE) === current)
+	const free = roles.filter((role) => !role.team)
+
+	const after = async (action: Promise<void>): Promise<void> => {
+		await action
+		await onChanged()
+	}
 
 	return (
 		<div className={styles.layout}>
 			<NavList
-				items={roles.map((role) => ({
-					id: role.name,
-					title: role.name,
-					note: `${role.model}${role.thinking ? ` · ${t('agents.thinks')}` : ''}`
-				}))}
-				value={form.selected}
-				onSelect={form.select}
-				addLabel={t('agents.add')}
-				onAdd={form.startNew}
+				items={[
+					...org.teams.map((team) => ({
+						id: team.name,
+						title: team.title || team.name,
+						note: t('org.membersCount', {
+							count: roles.filter((role) => role.team === team.name).length
+						})
+					})),
+					...(free.length > 0
+						? [{ id: FREE, title: t('agents.noTeam'), note: t('org.membersCount', { count: free.length }) }]
+						: [])
+				]}
+				value={current}
+				onSelect={(id) => {
+					const found = org.teams.find((team) => team.name === id)
+					if (found) teamForm.select(found)
+					else teamForm.reset()
+				}}
+				addLabel={t('org.addTeam')}
+				onAdd={teamForm.startNew}
 			/>
 
-			<Panel>
-				<Form layout="vertical">
-					<div className={styles.fields}>
-						<Form.Item label={t('agents.name')}>
-							<Input
-								value={form.draft.name}
-								readOnly={!form.isNew}
-								onChange={(e) => form.patch('name', e.target.value)}
-							/>
-						</Form.Item>
-						<Form.Item label={t('agents.model')}>
-							<Select
-								value={form.draft.model}
-								onChange={(value) => form.patch('model', value)}
-								options={modelOptions}
-							/>
-						</Form.Item>
-						<Form.Item label={t('agents.fallback')} help={t('agents.fallbackHint')}>
-							<Select
-								value={form.draft.fallback ?? ''}
-								onChange={(value) => form.patch('fallback', value || null)}
-								options={[{ value: '', label: t('agents.fallbackNone') }, ...modelOptions]}
-							/>
-						</Form.Item>
-						<Form.Item label={t('agents.maxTokens')}>
-							<InputNumber
-								min={256}
-								max={32000}
-								step={500}
-								value={form.draft.max_tokens}
-								onChange={(value) => form.patch('max_tokens', value ?? 6000)}
-							/>
-						</Form.Item>
-						<Form.Item label={t('agents.temperature')}>
-							<InputNumber
-								min={0}
-								max={2}
-								step={0.1}
-								value={form.draft.temperature}
-								onChange={(value) => form.patch('temperature', value ?? 0.3)}
-							/>
-						</Form.Item>
-						<Form.Item label={t('agents.thinking')}>
-							<Switch
-								checked={form.draft.thinking}
-								onChange={(value) => form.patch('thinking', value)}
-							/>
-						</Form.Item>
+			<div className={styles.column}>
+				{org.error && <Alert type="error" message={org.error} />}
+
+				{teamForm.selected !== '' || teamForm.creating ? (
+					<TeamCard
+						project={project}
+						form={teamForm}
+						members={members}
+						onSave={(body) => after(org.saveTeam(body))}
+						onDelete={(name) => after(org.removeTeam(name))}
+						onEditAgent={form.edit}
+						onAddAgent={() => form.create(teamForm.selected)}
+					/>
+				) : (
+					<Panel title={t('agents.noTeam')} subtitle={t('org.freeHint')}>
+						<div className={styles.members}>
+							{free.map((role) => (
+								<button
+									key={role.name}
+									type="button"
+									className={styles.member}
+									onClick={() => form.edit(role.name)}
+								>
+									<span className={styles.memberIcon}>{role.icon || '🤖'}</span>
+									<span className={styles.memberName}>
+										{role.lead ? '★ ' : ''}
+										{role.name}
+									</span>
+									<span className={styles.memberNote}>{role.model}</span>
+								</button>
+							))}
+							<button type="button" className={styles.add} onClick={() => form.create('')}>
+								{t('agents.add')}
+							</button>
+						</div>
+					</Panel>
+				)}
+
+				<Panel title={t('agents.setupTitle')} subtitle={t('agents.setupSubtitle')}>
+					<div className={styles.assignments}>
+						{(setup.setup?.assignments ?? []).map((item) => (
+							<Form.Item key={item.key} label={item.title} layout="vertical">
+								<Select
+									value={item.role || undefined}
+									placeholder={t('agents.setupEmpty')}
+									allowClear
+									onChange={(value) => void setup.assign(item.key, value ?? '')}
+									options={roles.map((role) => ({
+										value: role.name,
+										label: `${role.icon || '🤖'} ${role.name}`
+									}))}
+								/>
+							</Form.Item>
+						))}
 					</div>
+				</Panel>
+			</div>
 
-					<Form.Item label={t('agents.description')}>
-						<Input
-							value={form.draft.description}
-							placeholder={t('agents.descriptionPlaceholder')}
-							onChange={(e) => form.patch('description', e.target.value)}
-						/>
-					</Form.Item>
-
-					<Form.Item label={t('agents.prompt')}>
-						<Input.TextArea
-							rows={18}
-							value={form.draft.prompt}
-							placeholder={t('agents.promptPlaceholder')}
-							onChange={(e) => form.patch('prompt', e.target.value)}
-						/>
-					</Form.Item>
-				</Form>
-
-				<Toolbar status={form.status} error={form.error}>
-					<Button type="primary" loading={form.busy} onClick={() => void form.save()}>
-						{t('common.save')}
-					</Button>
-					<Button danger disabled={form.isNew || roles.length <= 1} onClick={() => void form.remove()}>
-						{t('agents.deleteButton')}
-					</Button>
-				</Toolbar>
-
-				<p className={styles.hint}>{t('agents.hint')}</p>
-			</Panel>
+			<AgentModal
+				form={form}
+				models={models}
+				teams={org.teams}
+				setup={setup.setup}
+				hints={hints}
+				canDelete={roles.length > 1}
+			/>
 		</div>
 	)
 }

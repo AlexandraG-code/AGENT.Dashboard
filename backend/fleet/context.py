@@ -1,6 +1,7 @@
 """Контекст-банк проектов — то, чем заменён NotebookLM (у него нет публичного API).
 
-Устройство: data/context/<проект>/*.md, обычные markdown-файлы.
+Устройство: `projects/<проект>/context/*.md`, обычные markdown-файлы рядом с
+остальными данными пространства.
 Файл _core.md особенный — он всегда целиком попадает в НЕИЗМЕННЫЙ префикс
 промпта. Это не украшение: у DeepSeek префиксный кэш дешевле промаха в 50 раз,
 поэтому блок контекста обязан быть побайтово одинаковым от вызова к вызову.
@@ -10,23 +11,22 @@
 import re
 from pathlib import Path
 
-from . import team
-from .config import CONTEXT_DIR, PROJECTS
+from . import layout, team
 
 CORE = "_core.md"
 # Правила и соглашения проекта. Держатся отдельно от описания: описание меняется
 # редко, правила пополняются по ходу работы, а в промпт нужны оба и всегда.
 RULES = "_rules.md"
-ALWAYS = (CORE, RULES)
+# Где остановились: короткая выжимка летописи, её ведёт летописец (см. journal).
+# Лежит в постоянном блоке, потому что представление о проекте нужно каждому
+# агенту, а не только тому, кто догадался спросить про него словами.
+DIGEST = "CONTEXT.md"
+ALWAYS = (CORE, RULES, DIGEST)
 
 
 def project_dir(project: str) -> Path:
-    team.sync()
-    if project not in PROJECTS:
-        raise KeyError(f"Нет проекта {project!r}. Известны: {', '.join(PROJECTS)}")
-    d = CONTEXT_DIR / project
-    d.mkdir(parents=True, exist_ok=True)
-    return d
+    team.project_of(project)  # проверка, что пространство есть: ошибка понятнее KeyError
+    return layout.context_dir(project)
 
 
 def files(project: str) -> list[Path]:
@@ -42,16 +42,29 @@ def stable_prefix(project: str) -> str:
 
     Порядок файлов фиксирован: префикс идёт в кэш провайдера побайтово, и любая
     перестановка обнуляет попадания (у DeepSeek кэш дешевле промаха в 50 раз).
+    Выжимка летописи меняется и потому кэш обнуляет — но переписывают её раз в
+    сессию, в конце, а внутри сессии блок остаётся тем же самым.
     """
     d = project_dir(project)
-    parts = [f"# Контекст проекта: {PROJECTS[project]}"]
-    for name, title in ((CORE, "Описание и цели"), (RULES, "Правила и соглашения")):
+    space = team.project_of(project)
+    parts = [f"# Контекст проекта: {space.title}"]
+    for name, title in ((CORE, "Описание и цели"), (RULES, "Правила и соглашения"),
+                        (DIGEST, "Где остановились")):
         path = d / name
         body = path.read_text(encoding="utf-8").strip() if path.exists() else ""
         if body:
             parts.append(f"## {title}\n\n{body}")
     if len(parts) == 1:
         parts.append(f"(Постоянный контекст ещё не заполнен — см. {CORE}.)")
+    # Блок детерминирован намеренно: он уходит в кэшируемый префикс промпта,
+    # и любая дата или случайность обнулила бы попадания в кэш провайдера.
+    if space.sign_code:
+        parts.append(
+            "## Подпись кода\n\n"
+            "Первой строкой каждого файла или блока кода ставь комментарий "
+            "синтаксисом этого языка: «Написано агентом <роль> (<модель>) "
+            "по ТЗ главного архитектора»."
+        )
     return "\n\n".join(parts)
 
 
@@ -116,7 +129,7 @@ def write(project: str, name: str, text: str, append: bool = False) -> Path:
 def overview(project: str) -> dict:
     return {
         "project": project,
-        "description": PROJECTS[project],
+        "description": team.project_of(project).title,
         "files": [
             {"name": p.name, "chars": p.stat().st_size} for p in files(project)
         ],

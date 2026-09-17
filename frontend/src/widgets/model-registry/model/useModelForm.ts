@@ -6,6 +6,8 @@ import { useTranslation } from 'react-i18next'
 import { fleetApi, type ModelIn, type ModelOut } from '@/shared/api'
 import { useAction } from '@/shared/lib/useAction'
 
+import type { IModelPreset } from '../lib/presets'
+
 const blank = (provider: string): ModelIn => ({
 	id: '',
 	provider,
@@ -14,7 +16,8 @@ const blank = (provider: string): ModelIn => ({
 	price_in_cached: 0,
 	price_out: 0,
 	concurrency: 3,
-	vision: false
+	vision: false,
+	plan: ''
 })
 
 /**
@@ -43,7 +46,8 @@ export function useModelForm(firstProvider: string, onChanged: () => Promise<voi
 			price_in_cached: model.price_in_cached ?? 0,
 			price_out: model.price_out ?? 0,
 			concurrency: model.concurrency ?? 3,
-			vision: model.vision ?? false
+			vision: model.vision ?? false,
+			plan: model.plan ?? ''
 		})
 	}
 
@@ -51,6 +55,27 @@ export function useModelForm(firstProvider: string, onChanged: () => Promise<voi
 		setSelected(null)
 		setCheck('')
 		setDraft(blank(firstProvider))
+	}
+
+	/** Модель из каталога провайдера: имя и провайдер оттуда, цены заполняет человек. */
+	const useCatalogModel = (id: string, provider: string) => {
+		setSelected(null)
+		setCheck('')
+		setDraft({ ...blank(provider), id, title: id })
+	}
+
+	/** Заготовка модели: подставляет идентификатор и цены, провайдера выбирает вызывающий. */
+	const applyPreset = (preset: IModelPreset, provider: string) => {
+		setSelected(null)
+		setCheck('')
+		setDraft({
+			...blank(provider),
+			id: preset.id,
+			title: preset.title,
+			price_in: preset.priceIn,
+			price_in_cached: preset.priceInCached,
+			price_out: preset.priceOut
+		})
 	}
 
 	const save = async () => {
@@ -89,6 +114,8 @@ export function useModelForm(firstProvider: string, onChanged: () => Promise<voi
 		selected,
 		edit,
 		startNew,
+		applyPreset,
+		useCatalogModel,
 		check,
 		save: saving.run,
 		remove: removing.run,
