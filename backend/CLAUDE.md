@@ -42,6 +42,9 @@ Python 3.13, FastAPI + uvicorn, MCP (stdio) для Claude Code, httpx. Базы 
   как есть, и помнить про скрипт миграции человек не обязан.
 - `fleet/journal.py` — летопись пространства: ARCHITECTURE, HISTORY, TASKS, BUGS и
   выжимка CONTEXT. Память команды между сессиями, наружу торчит `fleet_journal`.
+  Запись в летопись оформляет летописец (дешёвая модель), а доски задач и багов
+  правятся без вызова модели: пункт доски — одна строка, платить за её
+  оформление нечем.
 - `fleet/stats.py`, `fleet/claudecode.py` — статистика команды и расход самого Claude Code.
 - `dashboard/app.py` — HTTP API, `dashboard/schemas.py` — схемы ответов (из них типы фронта).
 

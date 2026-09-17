@@ -26,6 +26,11 @@ INSTRUCTIONS = """Команда агентов проекта и её обща�
 остановились в прошлый раз, задачи в работе и известные баги. Разведку по
 репозиторию начинай только после этого и только если брифа не хватило.
 
+Задачи бери оттуда, а не выводи из истории: доску ведут человек в дашборде и ты
+сам — fleet_journal(action="task"|"doing"|"done") и action="bug". Понял, что
+делать дальше, — сначала запиши на доску, потом раздавай агентам. Чего на доске
+нет, то потеряется вместе с сессией.
+
 Закончил осмысленный кусок — вызови fleet_journal(action="entry", facts="...")
 и перечисли голые факты: что просили, что сделано, чем кончилось, что осталось
 сломанным. Оформит запись и обновит выжимку летописец — дешёвая модель, твои
@@ -260,7 +265,8 @@ def fleet_context(action: str, project: str = "", name: str = "", text: str = ""
 
 
 @mcp.tool()
-def fleet_journal(action: str, facts: str = "", project: str = "", document: str = "") -> str:
+def fleet_journal(action: str, facts: str = "", project: str = "", document: str = "",
+                  section: str = "") -> str:
     """Летопись проекта: общая память команды между сессиями и моделями.
 
     Документы лежат в пространстве проекта, а не в чьём-то контексте, поэтому
@@ -275,7 +281,17 @@ def fleet_journal(action: str, facts: str = "", project: str = "", document: str
       entry — дописать в летопись голые факты о сделанном (facts): что просили,
         что сделано, чем кончилось, какие баги остались. Запись оформит и
         выжимку пересоберёт летописец, оформлять руками не нужно;
-      refresh — пересобрать выжимку CONTEXT.md по летописи и задачам.
+      refresh — пересобрать выжимку CONTEXT.md по летописи и задачам;
+      task — положить задачу (facts) на доску, в раздел «Сделать»;
+      doing — перенести задачу в «В работе» (facts — кусок её текста);
+      done — перенести задачу в «Готово» (facts — кусок её текста);
+      bug — записать баг (facts) в BUGS.md, по умолчанию в «Средние».
+
+    section: раздел доски, если нужен не тот, что по умолчанию: «В работе»,
+      «Сделать», «Готово» у задач и «Критические», «Средние», «Мелкие» у багов.
+
+    Доска денег не стоит: её пункт — одна строка, и модель для неё не зовётся.
+    Платные здесь только запись в летопись (entry) и выжимка (refresh).
     """
     if action == "brief":
         return _maybe_spill("journal", journal.brief(_space(project)))
@@ -293,6 +309,22 @@ def fleet_journal(action: str, facts: str = "", project: str = "", document: str
     if action == "refresh":
         res = journal.refresh_context(_space(project, write=True))
         return f"[выжимка · {res['model']} · ${res['cost']:.5f}]\n{res['file']}\n\n{res['note']}"
+    if action in ("task", "bug", "doing", "done"):
+        if not facts.strip():
+            return "Нечего записывать: передай текст в facts."
+        space = _space(project, write=True)
+        try:
+            if action == "task":
+                where = journal.add_item(space, journal.TASKS, facts, section)
+                return f"Задача на доске, раздел «{where}»: {facts.strip()[:120]}"
+            if action == "bug":
+                where = journal.add_item(space, journal.BUGS, facts, section)
+                return f"Баг записан, раздел «{where}»: {facts.strip()[:120]}"
+            target = section or ("В работе" if action == "doing" else "Готово")
+            moved = journal.move_item(space, journal.TASKS, facts, target)
+            return f"Перенесено в «{target}»: {moved[:120]}"
+        except (ValueError, LookupError) as exc:
+            return f"[не записано] {exc}"
     return f"Неизвестное действие {action!r}"
 
 
