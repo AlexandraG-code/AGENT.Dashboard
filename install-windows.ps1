@@ -4,9 +4,12 @@
     Развёртывание команды агентов на Windows 11: инструмент, память и окружение.
 
 .DESCRIPTION
-    Ставит систему целиком в одну папку: клонирует обёртку (бэкенд и фронт) и
-    приватный репозиторий памяти, создаёт виртуальное окружение питона, ставит
-    зависимости обеих частей и регистрирует MCP-сервер в Claude Code.
+    Клонирует обёртку (бэкенд и фронт) и приватный репозиторий памяти СОСЕДНИМИ
+    папками, создаёт виртуальное окружение питона, ставит зависимости обеих
+    частей и регистрирует MCP-сервер в Claude Code.
+
+    Память лежит рядом, а не внутри инструмента: так она открывается в IDE
+    отдельным проектом, и в каталоге инструмента нет ни одного файла данных.
 
     Скрипт можно запускать повторно: всё, что уже стоит, он пропускает, а не
     переделывает. Данные он не трогает никогда — память приезжает git-ом.
@@ -16,7 +19,10 @@
     в репозиториях их нет.
 
 .PARAMETER Path
-    Куда ставить. По умолчанию — %USERPROFILE%\AGENT.Dashboard.
+    Куда ставить инструмент. По умолчанию — %USERPROFILE%\AGENT.Dashboard.
+
+.PARAMETER DataPath
+    Куда класть память. По умолчанию — соседняя папка AGENT.Dashboard.DATA.
 
 .PARAMETER DataRepo
     Адрес приватного репозитория памяти.
@@ -30,6 +36,7 @@
 #>
 param(
     [string]$Path = (Join-Path $HOME 'AGENT.Dashboard'),
+    [string]$DataPath = '',
     [string]$ToolRepo = 'https://github.com/AlexandraG-code/AGENT.Dashboard.git',
     [string]$DataRepo = 'https://github.com/AlexandraG-code/AGENT.Dashboard.DATA.git',
     [switch]$SkipMcp
@@ -103,16 +110,24 @@ if (Test-Path (Join-Path $Path 'backend')) {
     Write-Ok 'склонирован'
 }
 
-$dataPath = Join-Path $Path 'data'
+if (-not $DataPath) {
+    # Соседняя папка, а не вложенная: инструмент остаётся чистой обёрткой.
+    $DataPath = Join-Path (Split-Path -Parent $Path) 'AGENT.Dashboard.DATA'
+}
 
-Write-Step "Память команды: $dataPath"
+Write-Step "Память команды: $DataPath"
 
-if (Test-Path (Join-Path $dataPath '.git')) {
+if (Test-Path (Join-Path $DataPath '.git')) {
     Write-Skip 'уже на месте'
 } else {
-    git clone $DataRepo $dataPath
-    Write-Ok 'склонирована — составы команд, промпты, контекст и летопись приехали'
+    git clone $DataRepo $DataPath
+    Write-Ok 'склонирована — составы команд, промпты, контекст, летопись и расход приехали'
 }
+
+# Путь к памяти — свойство машины, поэтому он в файле вне git. Соседнюю папку
+# команда нашла бы и сама, но человек вправе положить память куда угодно.
+Set-Content -Path (Join-Path $Path 'data-path.local') -Value $DataPath -Encoding UTF8 -NoNewline
+Write-Ok 'путь к памяти записан в data-path.local'
 
 Write-Step 'Окружение питона'
 
@@ -169,11 +184,11 @@ API и Swagger: http://localhost:8770/docs
 Осталось заполнить руками — это про машину, а не про проект, поэтому в git его нет:
 
   1. Ключи провайдеров — в дашборде, вкладка «Модели».
-     Лягут в data\secrets.json, который не коммитится.
+     Лягут в $(Join-Path $DataPath 'secrets.json'), который не коммитится.
 
   2. Каталоги клонов рабочих проектов — вкладка «Пространства»,
      поле «Каталог репозитория», выбор папки в обзоре.
-     Лягут в data\paths.local.json, тоже вне git.
+     Лягут в $(Join-Path $DataPath 'paths.local.json'), тоже вне git.
 
   3. Если claude не нашёлся выше:
      claude mcp add fleet -s user -- $(Join-Path $backend 'run-mcp.cmd')

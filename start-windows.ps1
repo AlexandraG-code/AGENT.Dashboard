@@ -31,9 +31,14 @@ if (-not (Test-Path $venvPython)) {
 if (-not (Test-Path (Join-Path $frontend 'node_modules'))) {
     throw 'Не поставлены зависимости фронта. Сначала прогони install-windows.ps1'
 }
-if (-not (Test-Path (Join-Path $root 'data'))) {
-    throw 'Нет каталога data: память команды не склонирована. Прогони install-windows.ps1'
+# Где лежит память, знает сам бэкенд: переменная FLEET_DATA, файл data-path.local
+# рядом с инструментом или соседняя папка AGENT.Dashboard.DATA. Спрашиваем его,
+# а не гадаем — иначе проверка и приложение разошлись бы в ответе.
+$dataPath = & $venvPython -c "import sys; sys.path.insert(0, r'$backend'); from fleet.config import DATA; print(DATA)"
+if (-not (Test-Path $dataPath)) {
+    throw "Память команды не найдена ($dataPath). Прогони install-windows.ps1 или укажи путь в data-path.local"
 }
+Write-Host "== Память команды: $dataPath" -ForegroundColor Cyan
 
 Write-Host '== Поднимаю API на 8770' -ForegroundColor Cyan
 Start-Process -FilePath (Join-Path $backend 'run-dashboard.cmd') -WorkingDirectory $backend

@@ -8,12 +8,48 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 # В репозитории инструмента данных нет вообще: всё, что нажито командой —
-# состав, промпты, контекст, летопись — лежит в отдельном приватном клоне
-# (`data/` или путь из FLEET_DATA). Имена файлов внутри знает только
-# `fleet.layout`, здесь — лишь корень.
+# состав, промпты, контекст, летопись, расход — лежит в отдельном приватном
+# клоне. Имена файлов внутри знает только `fleet.layout`, здесь — лишь корень.
 BACKEND = Path(__file__).resolve().parent.parent
 HOME = Path(os.environ.get("FLEET_HOME", BACKEND.parent))
-DATA = Path(os.environ.get("FLEET_DATA", HOME / "data"))
+
+# Где искать данные и почему в таком порядке. Путь к ним — свойство машины, и
+# в репозитории его быть не может: на маке это /Users/..., на windows D:\...
+DATA_FILE = HOME / "data-path.local"
+DEFAULT_DATA = HOME.parent / "AGENT.Dashboard.DATA"
+
+
+def _data_root() -> Path:
+    """Каталог данных команды.
+
+    Порядок поиска:
+
+    1. `FLEET_DATA` — переменная окружения перекрывает всё: ею удобно поднять
+       вторую копию команды на других данных, не трогая настройки;
+    2. `data-path.local` рядом с инструментом — файл в одну строку, его пишет
+       дашборд и скрипт развёртывания. Не коммитится;
+    3. соседний каталог `AGENT.Dashboard.DATA` — так их кладут и `git clone`
+       по инструкции, и скрипт установки, поэтому обычная машина не требует
+       настройки вообще;
+    4. `data/` внутри инструмента — прежняя вложенная раскладка. Оставлена,
+       чтобы старый клон не потерял свою память после обновления.
+    """
+    chosen = os.environ.get("FLEET_DATA", "").strip()
+    if chosen:
+        return Path(chosen).expanduser()
+    if DATA_FILE.exists():
+        # utf-8-sig: файл пишет и PowerShell, а он ставит BOM, и с ним путь
+        # превратился бы в несуществующий каталог с невидимым символом в начале.
+        stored = DATA_FILE.read_text(encoding="utf-8-sig").strip()
+        if stored:
+            return Path(stored).expanduser()
+    nested = HOME / "data"
+    if nested.is_dir() and not DEFAULT_DATA.is_dir():
+        return nested
+    return DEFAULT_DATA
+
+
+DATA = _data_root()
 LOG_FILE = DATA / "logs" / "events.jsonl"
 
 
