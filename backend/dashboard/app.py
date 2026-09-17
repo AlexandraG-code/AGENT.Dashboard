@@ -29,7 +29,7 @@ from dashboard.schemas import (  # noqa: E402
 )
 from fleet import (agents, avatars, chart, charter, chat, context, hints, layout,  # noqa: E402
                    log, migrate, paths, prompts, providers, repo_rules, roles,
-                   running, secrets, stats, team, transcript)
+                   running, secrets, stats, team, transcript, usage)
 from fleet.config import (ASSIGNMENTS, MODELS, PROJECTS, PROVIDERS,  # noqa: E402
                           SCOPES, TOOLS)
 from fleet.config import provider as get_provider  # noqa: E402
@@ -59,6 +59,8 @@ UPLOAD_LIMIT = 20 * 1024 * 1024
 # Данные могли приехать с другой машины в прежней плоской раскладке: переносим
 # их до первого чтения состава, иначе дашборд покажет пустую команду.
 migrate.run()
+# История расхода могла остаться только в журнале: свод появился позже него.
+usage.ensure_built()
 
 
 class SetupIn(BaseModel):
@@ -253,14 +255,14 @@ def state(project: str = "") -> dict:
              "builtin": p.builtin, "has_key": secrets.has(p.name, p.key_env)}
             for p in PROVIDERS.values()
         ],
-        "totals": log.totals(),
+        "totals": usage.totals(),
         "balance": balance,
     }
 
 
 @app.get("/api/events", response_model=EventsOut)
 def events(since: float = 0.0, limit: int = 120) -> dict:
-    return {"events": log.read(limit=limit, since=since), "totals": log.totals()}
+    return {"events": log.read(limit=limit, since=since), "totals": usage.totals()}
 
 
 @app.get("/api/stats", response_model=StatsOut)

@@ -56,12 +56,12 @@ export function StatsOverview({ stats, titles, project }: IStatsOverviewProps) {
 				<StatTile
 					label={t('overview.callsTotal')}
 					value={String(stats.total.calls)}
-					hint={t('overview.callsDaily', { count: stats.total_24h.calls })}
+					hint={t('overview.callsToday', { count: stats.total_today.calls })}
 				/>
 				<StatTile
 					label={t('overview.spent')}
 					value={money(stats.total.cost)}
-					hint={t('overview.spentDaily', { amount: money(stats.total_24h.cost) })}
+					hint={t('overview.spentToday', { amount: money(stats.total_today.cost) })}
 					tone={stats.total.cost > 0 ? 'neutral' : 'good'}
 				/>
 				<StatTile

@@ -66,8 +66,10 @@ class ClaudeStat(BaseModel):
 
 
 class StatsOut(BaseModel):
+    """Статистика из свода расхода: он переезжает вместе с памятью команды."""
+
     total: Slot
-    total_24h: Slot
+    total_today: Slot
     projects: dict[str, ProjectStat]
     models: dict[str, ModelStat]
     roles: dict[str, RoleStat]
@@ -76,14 +78,21 @@ class StatsOut(BaseModel):
 
 
 class Totals(BaseModel):
-    """Сводка из журнала — то, что висит в шапке."""
+    """Сводка из свода расхода — то, что висит в шапке.
+
+    «Сегодня» вместо скользящих суток намеренно: человек сверяет цифру с тем,
+    что он делал сегодня, а не с окном, у которого край плывёт вместе с часами.
+    """
 
     calls: int = 0
     cost: float = 0.0
     tokens_in: int = 0
     tokens_out: int = 0
-    calls_24h: int = 0
-    cost_24h: float = 0.0
+    tokens_cached: int = 0
+    tokens_reasoning: int = 0
+    seconds: float = 0.0
+    calls_today: int = 0
+    cost_today: float = 0.0
     errors: int = 0
     by_model: dict[str, dict] = {}
     by_role: dict[str, dict] = {}

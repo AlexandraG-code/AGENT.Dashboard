@@ -10,7 +10,7 @@ from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
 
-from . import agents, apply, context, journal, layout, log, migrate, roles, team, web
+from . import agents, apply, context, journal, layout, log, migrate, roles, team, usage, web
 from .config import ASSIGNMENTS, MODELS, PROJECTS, current_dir, workspace_of
 
 # Единственное, что видит модель-оркестратор до того, как полезет в инструменты:
@@ -376,10 +376,10 @@ def fleet_roles(project: str = "") -> str:
 @mcp.tool()
 def fleet_status(project: str = "") -> str:
     """Состояние команды: роли, расходы, остаток на счету провайдера, последние вызовы."""
-    t = log.totals()
+    t = usage.totals()
     lines = [
-        f"Вызовов всего: {t['calls']} (за сутки {t['calls_24h']}), ошибок: {t['errors']}",
-        f"Потрачено: ${t['cost']:.4f} (за сутки ${t['cost_24h']:.4f})",
+        f"Вызовов всего: {t['calls']} (сегодня {t['calls_today']}), ошибок: {t['errors']}",
+        f"Потрачено: ${t['cost']:.4f} (сегодня ${t['cost_today']:.4f})",
         f"Токенов: {t['tokens_in']} вход / {t['tokens_out']} выход",
     ]
     try:
@@ -417,6 +417,7 @@ def main() -> None:
     # Данные могли приехать с другой машины в прежней раскладке: переносим их
     # до первого обращения к составу команды, иначе сервер увидит пустой флот.
     migrate.run()
+    usage.ensure_built()
     mcp.run()
 
 

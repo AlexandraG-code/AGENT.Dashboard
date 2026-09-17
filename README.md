@@ -33,7 +33,7 @@ Claude Code — главный архитектор: файлы, git, финал
 | --- | --- | --- |
 | `backend/` | MCP-сервер команды, API на FastAPI, промпты ролей | [backend/README.md](backend/README.md) |
 | `frontend/` | интерфейс на Next.js: статистика, агенты, контекст | [frontend/README.md](frontend/README.md) |
-| `data/` | память команды: пространства с их командами и контекстом | приватный репозиторий |
+| `data/` | память команды: пространства с их командами, контекстом и расходом | приватный репозиторий |
 
 Правила для агентов: общие — [`CLAUDE.md`](CLAUDE.md), частные — в `backend/CLAUDE.md`
 и `frontend/CLAUDE.md`.
@@ -73,6 +73,29 @@ cd frontend && yarn dev                   # http://localhost:3001
 ```bash
 claude mcp add fleet -s user -- /путь/к/AGENT.Dashboard/backend/run-mcp.sh
 ```
+
+### Windows 11
+
+Развёртывание одним скриптом: он клонирует обёртку и приватную память, ставит окружение
+питона и зависимости фронта, регистрирует MCP-сервер в Claude Code.
+
+```powershell
+# один раз, из любой папки
+powershell -ExecutionPolicy Bypass -File .\install-windows.ps1
+powershell -ExecutionPolicy Bypass -File .\install-windows.ps1 -Path D:\work\AGENT.Dashboard
+
+# каждый день
+.\start-windows.ps1
+```
+
+`start-windows.ps1` поднимает API и интерфейс в двух окнах, ждёт, пока API ответит, и
+открывает дашборд. MCP-сервер он не трогает: его запускает сам Claude Code своим процессом
+на каждую сессию.
+
+Пусковые файлы самих частей — `backend\run-dashboard.cmd` и `backend\run-mcp.cmd`, пара к
+`.sh` для macOS. Что остаётся заполнить руками, разобрано в
+[backend/README.md](backend/README.md#перенос-на-другую-машину): ключи провайдеров и пути
+к клонам рабочих проектов, то есть ровно то, что принадлежит машине, а не проекту.
 
 ## Экономика
 

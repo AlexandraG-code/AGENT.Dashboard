@@ -49,9 +49,7 @@
     "statsFailed": "Статистика недоступна: {{error}}",
     "counting": "Считаю статистику…",
     "callsTotal": "вызовов всего",
-    "callsDaily": "за сутки {{count}}",
     "spent": "потрачено",
-    "spentDaily": "за сутки {{amount}}",
     "tokensIn": "токенов на вход",
     "tokensOut": "токенов на выход",
     "fromCache": "из кэша {{amount}}",
@@ -71,7 +69,9 @@
     "table": "Проект × модель",
     "tableHint": "полная таблица — она же печатается в отчёт",
     "noSpace": "без пространства",
-    "dayTooltip": "{{cost}} · {{calls}} выз. · {{in}}→{{out}} ток."
+    "dayTooltip": "{{cost}} · {{calls}} выз. · {{in}}→{{out}} ток.",
+    "callsToday": "сегодня {{count}}",
+    "spentToday": "сегодня {{amount}}"
   },
   "claude": {
     "title": "Claude Code — главный архитектор",

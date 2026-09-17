@@ -2457,10 +2457,13 @@ export interface components {
             /** Balance */
             balance?: number | null;
         };
-        /** StatsOut */
+        /**
+         * StatsOut
+         * @description Статистика из свода расхода: он переезжает вместе с памятью команды.
+         */
         StatsOut: {
             total: components["schemas"]["Slot"];
-            total_24h: components["schemas"]["Slot"];
+            total_today: components["schemas"]["Slot"];
             /** Projects */
             projects: {
                 [key: string]: components["schemas"]["ProjectStat"];
@@ -2563,7 +2566,10 @@ export interface components {
         };
         /**
          * Totals
-         * @description Сводка из журнала — то, что висит в шапке.
+         * @description Сводка из свода расхода — то, что висит в шапке.
+         *
+         *     «Сегодня» вместо скользящих суток намеренно: человек сверяет цифру с тем,
+         *     что он делал сегодня, а не с окном, у которого край плывёт вместе с часами.
          */
         Totals: {
             /**
@@ -2587,15 +2593,30 @@ export interface components {
              */
             tokens_out: number;
             /**
-             * Calls 24H
+             * Tokens Cached
              * @default 0
              */
-            calls_24h: number;
+            tokens_cached: number;
             /**
-             * Cost 24H
+             * Tokens Reasoning
              * @default 0
              */
-            cost_24h: number;
+            tokens_reasoning: number;
+            /**
+             * Seconds
+             * @default 0
+             */
+            seconds: number;
+            /**
+             * Calls Today
+             * @default 0
+             */
+            calls_today: number;
+            /**
+             * Cost Today
+             * @default 0
+             */
+            cost_today: number;
             /**
              * Errors
              * @default 0
