@@ -10,12 +10,16 @@ Python 3.13, FastAPI + uvicorn, MCP (stdio) для Claude Code, httpx. Базы 
 | --- | --- |
 | `./run-dashboard.sh` | API и Swagger на http://localhost:8770 |
 | `./run-mcp.sh` | MCP-сервер команды (его запускает сам Claude Code, руками не нужно) |
-| `.venv/bin/python -m compileall fleet dashboard` | быстрая проверка синтаксиса |
+| `.venv/bin/python -m compileall fleet dashboard` | быстрая проверка синтаксиса (на Windows — `.venv/Scripts/python.exe`) |
 
 Виртуальное окружение — `backend/.venv`, зависимости пинятся точно в `requirements.txt`.
+Исполняемые файлы в нём лежат в `bin` на macOS и Linux и в `Scripts` на Windows.
 
-Для Windows те же пусковые файлы лежат рядом с расширением `.cmd`. Правишь один — правь и
-пару: разъехавшиеся пусковые файлы находятся уже на новой машине, когда чинить их некогда.
+Для Windows те же пусковые файлы лежат рядом с расширением `.cmd` — они нужны для cmd.exe и
+PowerShell и ими же регистрируется MCP-сервер. Сами `.sh` каталог окружения ищут, а не
+угадывают, поэтому из Git Bash (а им Claude Code выполняет команды на Windows) работают тоже.
+Правишь один — правь и пару: разъехавшиеся пусковые файлы находятся уже на новой машине,
+когда чинить их некогда.
 
 ## Модули
 

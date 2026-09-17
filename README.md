@@ -85,7 +85,7 @@ claude mcp add fleet -s user -- /путь/к/AGENT.Dashboard/backend/run-mcp.sh
 питона и зависимости фронта, регистрирует MCP-сервер в Claude Code.
 
 ```powershell
-# один раз, из любой папки
+# один раз, из папки, в которую ставим (или изнутри готового клона)
 powershell -ExecutionPolicy Bypass -File .\install-windows.ps1
 powershell -ExecutionPolicy Bypass -File .\install-windows.ps1 -Path D:\work\AGENT.Dashboard
 
@@ -98,7 +98,8 @@ powershell -ExecutionPolicy Bypass -File .\install-windows.ps1 -Path D:\work\AGE
 на каждую сессию.
 
 Пусковые файлы самих частей — `backend\run-dashboard.cmd` и `backend\run-mcp.cmd`, пара к
-`.sh` для macOS. Что остаётся заполнить руками, разобрано в
+`.sh` для macOS; из Git Bash на Windows работают и `.sh` — каталог окружения они ищут сами,
+`bin` или `Scripts`. Что остаётся заполнить руками, разобрано в
 [backend/README.md](backend/README.md#перенос-на-другую-машину): ключи провайдеров и пути
 к клонам рабочих проектов, то есть ровно то, что принадлежит машине, а не проекту.
 

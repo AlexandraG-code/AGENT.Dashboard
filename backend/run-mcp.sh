@@ -15,4 +15,13 @@ if [ -z "$GLM_API_KEY" ] || [ -z "$DEEPSEEK_API_KEY" ]; then
     fi
 fi
 
-exec ./.venv/bin/python -m fleet.server
+# bin на macOS и Linux, Scripts на Windows: скрипт живёт в обеих системах, и на
+# Windows его зовут из Git Bash. Пара к нему — run-mcp.cmd.
+python='./.venv/bin/python'
+[ -x "$python" ] || python='./.venv/Scripts/python.exe'
+[ -x "$python" ] || {
+    echo "Нет окружения в $PWD/.venv — поставь зависимости, см. backend/README.md" >&2
+    exit 1
+}
+
+exec "$python" -m fleet.server

@@ -11,6 +11,10 @@ python3 -m venv .venv && ./.venv/bin/pip install -r requirements.txt
 ./run-dashboard.sh        # http://localhost:8770 — API, Swagger на /docs, ReDoc на /redoc
 ```
 
+На Windows окружение ставит `install-windows.ps1`, а из PowerShell дашборд поднимается
+файлом `run-dashboard.cmd`. В Git Bash работает и `./run-dashboard.sh`: он сам смотрит,
+как называется каталог окружения — `bin` или `Scripts`.
+
 MCP-сервер (`./run-mcp.sh`) запускает сам Claude Code, руками его дёргать не нужно:
 
 ```bash
@@ -134,6 +138,10 @@ cd frontend; yarn install; cd ..
 `run-mcp.cmd` и `run-dashboard.cmd` для Windows. Делают они одно и то же, включая главное —
 кладут рабочий каталог в `FLEET_CWD` ДО перехода в свою папку, иначе команда решит, что
 работа идёт в `backend`, а не в проекте.
+
+Пара нужна потому, что cmd.exe не умеет запускать `.sh`, а Claude Code на Windows
+регистрирует сервер именно `.cmd`. Но каталог окружения оба варианта ищут одинаково —
+`bin` или `Scripts`, — поэтому на Windows из Git Bash `.sh` тоже работают.
 
 Цифры расхода переезжают: они лежат в своде (`stats.json` в корне памяти и
 `projects/<проект>/stats.json`), который коммитится. Свод пополняется на каждом вызове
