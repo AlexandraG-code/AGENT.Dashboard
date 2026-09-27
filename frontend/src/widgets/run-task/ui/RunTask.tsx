@@ -5,6 +5,7 @@ import { Alert, Button, Form, Input, Select } from 'antd'
 import { useTranslation } from 'react-i18next'
 
 import type { RoleOut } from '@/shared/api'
+import { roleTitle } from '@/shared/lib/roleTitle'
 import { Panel, Toolbar } from '@/shared/ui'
 
 import { useRunTask } from '../model/useRunTask'
@@ -34,7 +35,10 @@ export function RunTask({ roles, project }: IRunTaskProps) {
 					<Select
 						value={form.role || roles[0]?.name}
 						onChange={form.setRole}
-						options={roles.map((role) => ({ value: role.name, label: `${role.name} — ${role.model}` }))}
+						options={roles.map((role) => ({
+							value: role.name,
+							label: `${roleTitle(role)} — ${role.model}`
+						}))}
 					/>
 				</Form.Item>
 				<Form.Item label={t('run.mode')} className={styles.wide} layout="vertical">

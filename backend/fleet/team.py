@@ -28,7 +28,7 @@ from . import layout, paths
 from .config import (ASSIGNMENTS, MODELS, PROJECTS, PROVIDERS, SCOPES, TOOLS,
                      Document, Model, Provider, Role, Team, Workspace)
 
-FIELDS = ("model", "thinking", "max_tokens", "temperature", "fallback", "description",
+FIELDS = ("title", "model", "thinking", "max_tokens", "temperature", "fallback", "description",
           "lead", "external", "deputy", "icon", "prompt", "tools", "team")
 TEAM_FIELDS = ("title", "description")
 DOC_FIELDS = ("title", "scope", "team", "order")
@@ -200,6 +200,8 @@ def _clean(fields: dict) -> dict:
     out: dict = {}
     if "model" in fields:
         out["model"] = str(fields["model"])
+    if "title" in fields:
+        out["title"] = str(fields["title"]).strip()
     if "description" in fields:
         out["description"] = str(fields["description"]).strip()
     if "icon" in fields:

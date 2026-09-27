@@ -4,11 +4,13 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { fleetApi, type ModelOut, type RoleOut } from '@/shared/api'
+import { roleTitle } from '@/shared/lib/roleTitle'
 import { useAction } from '@/shared/lib/useAction'
 
 /** Пустой черновик нового агента. */
 const blank = (model: string): RoleOut => ({
 	name: '',
+	title: '',
 	model,
 	fallback: null,
 	thinking: false,
@@ -75,7 +77,7 @@ export function useAgentForm(
 
 	const remove = async () => {
 		if (selected === null) return
-		if (!window.confirm(t('agents.deleteConfirm', { name: selected }))) return
+		if (!window.confirm(t('agents.deleteConfirm', { name: roleTitle(draft) }))) return
 		await fleetApi.deleteRole(project, selected)
 		await onChanged()
 		setSelected(null)

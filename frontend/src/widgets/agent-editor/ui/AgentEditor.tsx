@@ -4,6 +4,7 @@ import { Alert, Form, Select } from 'antd'
 import { useTranslation } from 'react-i18next'
 
 import type { ModelOut, RoleOut } from '@/shared/api'
+import { roleTitle } from '@/shared/lib/roleTitle'
 import { useOrg } from '@/shared/model'
 import { NavList, Panel } from '@/shared/ui'
 
@@ -102,7 +103,7 @@ export function AgentEditor({ project, roles, models, onChanged }: IAgentEditorP
 									<span className={styles.memberIcon}>{role.icon || '🤖'}</span>
 									<span className={styles.memberName}>
 										{role.lead ? '★ ' : ''}
-										{role.name}
+										{roleTitle(role)}
 									</span>
 									<span className={styles.memberNote}>{role.model}</span>
 								</button>
@@ -125,7 +126,7 @@ export function AgentEditor({ project, roles, models, onChanged }: IAgentEditorP
 									onChange={(value) => void setup.assign(item.key, value ?? '')}
 									options={roles.map((role) => ({
 										value: role.name,
-										label: `${role.icon || '🤖'} ${role.name}`
+										label: `${role.icon || '🤖'} ${roleTitle(role)}`
 									}))}
 								/>
 							</Form.Item>

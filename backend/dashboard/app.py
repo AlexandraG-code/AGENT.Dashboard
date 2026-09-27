@@ -128,6 +128,7 @@ class RoleIn(BaseModel):
 
     project: str
     name: str
+    title: str = ""
     model: str = ""
     description: str = ""
     fallback: str | None = None
@@ -510,7 +511,8 @@ def role_save(body: RoleIn) -> dict:
     """Создать агента или изменить его настройки (и промпт, если он прислан)."""
     try:
         role = team.set_role(
-            body.project, body.name, model=body.model, description=body.description,
+            body.project, body.name, title=body.title, model=body.model,
+            description=body.description,
             fallback=body.fallback, thinking=body.thinking,
             max_tokens=body.max_tokens, temperature=body.temperature,
             lead=body.lead, external=body.external, deputy=body.deputy, icon=body.icon,

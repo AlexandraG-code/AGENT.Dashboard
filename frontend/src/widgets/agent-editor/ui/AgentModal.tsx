@@ -4,6 +4,7 @@ import { Button, Checkbox, Form, Input, InputNumber, Modal, Select, Switch } fro
 import { useTranslation } from 'react-i18next'
 
 import type { HintOut, ModelOut, SetupOut, TeamOut } from '@/shared/api'
+import { roleTitle } from '@/shared/lib/roleTitle'
 import { Toolbar } from '@/shared/ui'
 
 import type { IAgentForm } from '../model/useAgentForm'
@@ -45,11 +46,18 @@ export function AgentModal({ form, models, teams, setup, hints, canDelete }: IAg
 			width={960}
 			footer={null}
 			destroyOnHidden
-			title={form.isNew ? t('agents.newTitle') : `${form.draft.icon || '🤖'} ${form.draft.name}`}
+			title={form.isNew ? t('agents.newTitle') : `${form.draft.icon || '🤖'} ${roleTitle(form.draft)}`}
 		>
 			<Form layout="vertical">
 				<div className={styles.fields}>
-					<Form.Item label={t('agents.name')}>
+					<Form.Item label={t('agents.name')} help={t('agents.nameHint')}>
+						<Input
+							value={form.draft.title}
+							placeholder={form.draft.name}
+							onChange={(e) => form.patch('title', e.target.value)}
+						/>
+					</Form.Item>
+					<Form.Item label={t('agents.key')} help={t('agents.keyHint')}>
 						<Input
 							value={form.draft.name}
 							readOnly={!form.isNew}

@@ -2123,6 +2123,11 @@ export interface components {
             /** Name */
             name: string;
             /**
+             * Title
+             * @default
+             */
+            title: string;
+            /**
              * Model
              * @default
              */
@@ -2184,11 +2189,16 @@ export interface components {
         };
         /**
          * RoleOut
-         * @description Агент: настройки плюс текущий промпт.
+         * @description Агент: настройки плюс текущий промпт. `name` — неизменный ключ, `title` — имя для людей.
          */
         RoleOut: {
             /** Name */
             name: string;
+            /**
+             * Title
+             * @default
+             */
+            title: string;
             /** Model */
             model: string;
             /** Fallback */

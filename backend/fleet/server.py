@@ -366,7 +366,10 @@ def fleet_roles(project: str = "") -> str:
                                  ("внешний", r["external"])) if on]
         tools = ", ".join(r["tools"]) or "без инструментов"
         tail = f" [{', '.join(marks)}]" if marks else ""
-        lines.append(f"{r['icon']} {r['name']} · {r['model']} · {tools}{tail}"
+        # Человек зовёт агента по имени («Дипсик»), а в инструменты уходит ключ:
+        # без имени рядом оркестратор не свяжет одно с другим.
+        title = f" «{r['title']}»" if r["title"] else ""
+        lines.append(f"{r['icon']} {r['name']}{title} · {r['model']} · {tools}{tail}"
                      f"\n    {r['description']}")
     if comp.role_for:
         lines.append("\nКто чем занят:")

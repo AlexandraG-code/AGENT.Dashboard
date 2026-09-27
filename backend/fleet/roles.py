@@ -99,6 +99,7 @@ def all_roles(project: str) -> list[dict]:
     return [
         {
             "name": name,
+            "title": r.title,
             "model": r.model,
             "fallback": r.fallback,
             "thinking": r.thinking,

@@ -36,6 +36,7 @@ def _role_view(role: Role) -> dict:
     plan = model.plan if model else ""
     return {
         "name": role.name,
+        "title": role.title,
         "icon": role.icon,
         "model": role.model,
         "provider": provider,
@@ -131,7 +132,9 @@ def mermaid(project: str) -> str:
 
     def label(role: Role) -> str:
         # <br/> вместо переноса строки: mermaid внутри кавычек его понимает.
-        return f"{role.name}<br/>{role.model}"
+        # Кавычка в имени, заданном человеком, закрыла бы подпись узла раньше времени.
+        title = (role.title or role.name).replace('"', "'")
+        return f"{title}<br/>{role.model}"
 
     lines = ["flowchart TD"]
     if lead is not None:

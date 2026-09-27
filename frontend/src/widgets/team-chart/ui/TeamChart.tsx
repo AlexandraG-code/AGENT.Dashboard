@@ -6,6 +6,7 @@ import { Button, Tag } from 'antd'
 import { useTranslation } from 'react-i18next'
 
 import type { ChartOut } from '@/shared/api'
+import { roleTitle } from '@/shared/lib/roleTitle'
 import { Panel } from '@/shared/ui'
 
 import styles from './TeamChart.module.scss'
@@ -54,7 +55,7 @@ export function TeamChart({ chart }: ITeamChartProps) {
 				{chart.lead ? (
 					<div className={styles.role} key={chart.lead.name}>
 						<span className={styles.icon}>{chart.lead.icon || '🤖'}</span>
-						<b>{chart.lead.name}</b>
+						<b>{roleTitle(chart.lead)}</b>
 						<span className={styles.model}>{chart.lead.model}</span>
 						{chart.lead.external && <Tag>{t('chart.external')}</Tag>}
 					</div>
@@ -64,7 +65,7 @@ export function TeamChart({ chart }: ITeamChartProps) {
 				{chart.deputy ? (
 					<div className={styles.role} key={chart.deputy.name}>
 						<span className={styles.icon}>{chart.deputy.icon || '🤖'}</span>
-						<b>{chart.deputy.name}</b>
+						<b>{roleTitle(chart.deputy)}</b>
 						<span className={styles.model}>{chart.deputy.model}</span>
 						{chart.deputy.external && <Tag>{t('chart.external')}</Tag>}
 					</div>
@@ -74,7 +75,7 @@ export function TeamChart({ chart }: ITeamChartProps) {
 				{chart.council.map((role) => (
 					<div className={styles.role} key={role.name}>
 						<span className={styles.icon}>{role.icon || '🤖'}</span>
-						<b>{role.name}</b>
+						<b>{roleTitle(role)}</b>
 						<span className={styles.model}>{role.model}</span>
 						{role.external && <Tag>{t('chart.external')}</Tag>}
 					</div>
@@ -84,7 +85,7 @@ export function TeamChart({ chart }: ITeamChartProps) {
 				{chart.workers.map((role) => (
 					<div className={styles.role} key={role.name}>
 						<span className={styles.icon}>{role.icon || '🤖'}</span>
-						<b>{role.name}</b>
+						<b>{roleTitle(role)}</b>
 						<span className={styles.model}>{role.model}</span>
 						{role.external && <Tag>{t('chart.external')}</Tag>}
 					</div>

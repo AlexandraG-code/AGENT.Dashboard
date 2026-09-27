@@ -4,6 +4,7 @@ import { Button, Form, Input, Upload } from 'antd'
 import { useTranslation } from 'react-i18next'
 
 import type { RoleOut, TeamIn } from '@/shared/api'
+import { roleTitle } from '@/shared/lib/roleTitle'
 import { Avatar, Panel } from '@/shared/ui'
 
 import { useTeamForm } from '../model/useTeamForm'
@@ -125,7 +126,7 @@ export function TeamCard({ project, form, members, onSave, onDelete, onEditAgent
 								className={styles.member}
 								onClick={() => onEditAgent(role.name)}
 							>
-								<Avatar project={project} name={role.name} icon={role.icon} size={40} />
+								<Avatar project={project} name={roleTitle(role)} icon={role.icon} size={40} />
 								<span className={styles.memberName}>
 									{role.lead ? '★ ' : ''}
 									{role.name}

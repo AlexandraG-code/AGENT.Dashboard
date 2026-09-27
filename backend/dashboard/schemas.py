@@ -100,9 +100,10 @@ class Totals(BaseModel):
 
 
 class RoleOut(BaseModel):
-    """Агент: настройки плюс текущий промпт."""
+    """Агент: настройки плюс текущий промпт. `name` — неизменный ключ, `title` — имя для людей."""
 
     name: str
+    title: str = ""
     model: str
     fallback: str | None = None
     thinking: bool = False
@@ -396,6 +397,7 @@ class ChartRole(BaseModel):
     """Роль в схеме команды: кто это и на чём работает."""
 
     name: str
+    title: str = ""
     icon: str = ""
     model: str = ""
     provider: str = ""
