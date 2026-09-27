@@ -17,6 +17,7 @@ Claude говорит на своём, поэтому у провайдера с
     неизменный блок контекста проекта всегда идёт в начало промпта.
 """
 
+import json
 import time
 from dataclasses import dataclass, field
 from typing import Any
@@ -49,13 +50,15 @@ class Answer:
     seconds: float = 0.0
     reasoning: str = ""
     meta: dict = field(default_factory=dict)
+    calls: list[dict] = field(default_factory=list)
+    turn: dict = field(default_factory=dict)
 
     def __str__(self) -> str:
         return self.text
 
 
 def _payload(model: Model, messages: list[dict], thinking: bool, max_tokens: int,
-             temperature: float) -> dict:
+             temperature: float, tools: list[dict] | None = None) -> dict:
     """Тело запроса для OpenAI-совместимого провайдера."""
     body: dict[str, Any] = {
         # Имя модели в запросе не всегда равно её идентификатору в реестре:
@@ -70,12 +73,25 @@ def _payload(model: Model, messages: list[dict], thinking: bool, max_tokens: int
     # (Yandex, GigaChat) лишнее поле ломает запрос, поэтому оно опционально.
     if get_provider(model.provider).send_thinking:
         body["thinking"] = {"type": "enabled" if thinking else "disabled"}
+    if tools:
+        body["tools"] = [{"type": "function", "function": t} for t in tools]
     return body
 
 
 def _budget(max_tokens: int, thinking: bool, headroom: int = REASONING_HEADROOM) -> int:
     """Сколько токенов просить у модели, чтобы ответ пережил размышления."""
     return min(MAX_TOKENS_CAP, max_tokens + (headroom if thinking else 0))
+
+
+def _args(raw: object) -> dict:
+    """Аргументы вызова инструмента. Модель присылает их строкой json и может ошибиться."""
+    if isinstance(raw, dict):
+        return raw
+    try:
+        parsed = json.loads(str(raw or "{}"))
+    except json.JSONDecodeError as exc:
+        return {"_error": f"аргументы не разобрались как json: {exc}"}
+    return parsed if isinstance(parsed, dict) else {"_error": "аргументы — не объект"}
 
 
 def _read(data: dict, requested: str) -> dict:
@@ -94,7 +110,27 @@ def _read(data: dict, requested: str) -> dict:
         "tokens_cached": cached,
         "tokens_reasoning": details.get("reasoning_tokens", 0) or 0,
         "reasoning": (choice.get("reasoning_content") or "").strip(),
+        "calls": [{"id": c.get("id", ""), "name": (c.get("function") or {}).get("name", ""),
+                   "args": _args((c.get("function") or {}).get("arguments"))}
+                  for c in choice.get("tool_calls") or []],
+        # Ход модели уходит обратно как есть, вместе с размышлениями: DeepSeek в
+        # режиме размышлений без них отвергает продолжение с инструментами.
+        "turn": {k: choice[k] for k in ("role", "content", "tool_calls", "reasoning_content")
+                 if k in choice},
     }
+
+
+def tool_results(model_id: str, answer: Answer, outputs: list[tuple[str, str]]) -> list[dict]:
+    """Сообщения, которыми разговор продолжается после вызова инструментов.
+
+    Диалект определяется моделью, которая сделала вызов: историю с чужим
+    форматом инструментов провайдер не примет.
+    """
+    if get_provider(MODELS[model_id].provider).auth == "anthropic":
+        return anthropic.tool_results(answer.turn, outputs)
+    turn = {"role": "assistant", **answer.turn}
+    return [turn, *({"role": "tool", "tool_call_id": call_id, "content": text}
+                    for call_id, text in outputs)]
 
 
 def call(
@@ -109,9 +145,15 @@ def call(
     timeout: float = 180.0,
     fallback: str | None = None,
     task: str = "",
+    tools: list[dict] | None = None,
     _headroom: int = REASONING_HEADROOM,
 ) -> Answer:
-    """Один запрос к модели. Логирует стоимость, при сбое пробует fallback."""
+    """Один запрос к модели. Логирует стоимость, при сбое пробует fallback.
+
+    `tools` — описания функций, которые модели разрешено вызвать. Сами вызовы
+    здесь не выполняются: ответ приходит с `calls`, а разговор продолжает
+    вызывающий (см. agents.ask).
+    """
     model = MODELS.get(model_id)
     if model is None:
         raise FleetError(f"Неизвестная модель: {model_id}")
@@ -129,10 +171,11 @@ def call(
                 providers.chat_url(provider),
                 headers=providers.headers(provider),
                 json=(
-                    anthropic.payload(model, messages, thinking, _budget(max_tokens, thinking, _headroom))
+                    anthropic.payload(model, messages, thinking,
+                                      _budget(max_tokens, thinking, _headroom), tools)
                     if claude
                     else _payload(model, messages, thinking,
-                                  _budget(max_tokens, thinking, _headroom), temperature)
+                                  _budget(max_tokens, thinking, _headroom), temperature, tools)
                 ),
             )
         data = resp.json()
@@ -142,7 +185,7 @@ def call(
         if fallback:
             return call(fallback, messages, role=role, project=project, thinking=thinking,
                         max_tokens=max_tokens, temperature=temperature, timeout=timeout,
-                        task=task)
+                        task=task, tools=tools)
         raise FleetError(f"{model_id}: {exc}") from exc
 
     if "error" in data:
@@ -152,7 +195,7 @@ def call(
         if fallback:
             return call(fallback, messages, role=role, project=project, thinking=thinking,
                         max_tokens=max_tokens, temperature=temperature, timeout=timeout,
-                        task=task)
+                        task=task, tools=tools)
         raise FleetError(f"{model_id}: {msg}")
 
     fields = anthropic.read(data, model_id) if claude else _read(data, model_id)
@@ -163,6 +206,9 @@ def call(
 
     if ans.model != model_id:
         ans.meta["substituted"] = f"{model_id} → {ans.model}"
+    # Имя из реестра, а не из ответа: продолжать разговор с инструментами надо
+    # той моделью, что реально ответила, а GLM в ответе пишет своё имя.
+    ans.meta["model_id"] = model_id
 
     call_id = transcript.save(ans, messages, project=project, requested=model_id, task=task)
     log.emit(
@@ -171,7 +217,7 @@ def call(
         tokens_cached=ans.tokens_cached, tokens_reasoning=ans.tokens_reasoning,
         cost=ans.cost, seconds=ans.seconds, chars_out=len(ans.text),
     )
-    if not ans.text:
+    if not ans.text and not ans.calls:
         # Размышления съели весь бюджет. Один раз пробуем с удвоенным запасом,
         # потом уходим в fallback — иначе роль молча выпадает из работы.
         if ans.tokens_reasoning and _headroom < REASONING_HEADROOM * 4:
@@ -182,7 +228,7 @@ def call(
             return call(model_id, messages, role=role, project=project,
                         thinking=thinking, max_tokens=max_tokens,
                         temperature=temperature, timeout=timeout,
-                        fallback=fallback, task=task,
+                        fallback=fallback, task=task, tools=tools,
                         _headroom=_headroom * 3)
         msg = (f"{ans.model} вернул пустой ответ "
                f"(размышления сожгли {ans.tokens_reasoning} токенов)")
@@ -191,7 +237,7 @@ def call(
         if fallback:
             return call(fallback, messages, role=role, project=project,
                         thinking=thinking, max_tokens=max_tokens,
-                        temperature=temperature, timeout=timeout, task=task)
+                        temperature=temperature, timeout=timeout, task=task, tools=tools)
         raise FleetError(msg)
     running.finish(task_id, True, ans.cost)
     return ans

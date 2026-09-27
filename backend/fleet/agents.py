@@ -6,12 +6,13 @@
 """
 
 import base64
+import dataclasses
 import mimetypes
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from . import client, context, log, prompts, repo_rules, roles, team, web
+from . import apply, client, context, log, prompts, repo_rules, roles, team, toolbox, web
 from .config import MODELS
 
 
@@ -30,11 +31,15 @@ def _messages(role, project: str, task: str, extra: str = "", retrieve: bool = T
 
 
 def ask(role_name: str, task: str, project: str, extra: str = "",
-        retrieve: bool = True, max_tokens: int | None = None) -> client.Answer:
+        retrieve: bool = True, max_tokens: int | None = None,
+        tools: bool = True) -> client.Answer:
     """Поручить задачу роли и получить ответ.
 
     Пространство обязательно: команда у каждого проекта своя, и одно и то же
     имя роли в двух пространствах — это два разных агента с разными промптами.
+
+    `tools=False` — служебный вызов (сжатие, летопись): роль отвечает текстом,
+    даже если у неё есть права. Летописцу незачем лезть в код посреди записи.
     """
     if not project:
         raise ValueError("Не указано пространство: состав команды у каждого проекта свой")
@@ -42,16 +47,65 @@ def ask(role_name: str, task: str, project: str, extra: str = "",
     # задачи, MCP-инструменты), и забыть подстановку в одной из них слишком легко.
     role_name = roles.stand_in(project, role_name)
     role = roles.get(project, role_name)
-    return client.call(
-        role.model,
-        _messages(role, project, task, extra, retrieve),
-        role=role_name,
-        project=project,
-        thinking=role.thinking,
-        max_tokens=max_tokens or role.max_tokens,
-        temperature=role.temperature,
-        fallback=role.fallback,
-        task=task,
+    if not tools:
+        role = dataclasses.replace(role, tools=[])
+    messages = _messages(role, project, task, extra, retrieve)
+    specs = toolbox.specs(role)
+    if not specs:
+        return client.call(
+            role.model, messages, role=role_name, project=project,
+            thinking=role.thinking, max_tokens=max_tokens or role.max_tokens,
+            temperature=role.temperature, fallback=role.fallback, task=task,
+        )
+    return _work(role, messages, specs, project, task, max_tokens or role.max_tokens)
+
+
+def _work(role, messages: list[dict], specs: list[dict], project: str, task: str,
+          max_tokens: int) -> client.Answer:
+    """Разговор с инструментами: модель вызывает функции, пока не даст ответ.
+
+    Каждый шаг — отдельный вызов со своей строкой в журнале и транскриптом, а
+    наружу уходит один ответ с суммой расхода и отчётом о записанных файлах:
+    главному архитектору нужен итог, а не пересказ каждого шага.
+    """
+    session = toolbox.Session(project)
+    model, fallback = role.model, role.fallback
+    total = {"tokens_in": 0, "tokens_out": 0, "tokens_cached": 0,
+             "tokens_reasoning": 0, "cost": 0.0, "seconds": 0.0}
+    steps = 0
+    answer: client.Answer | None = None
+    for steps in range(1, toolbox.MAX_STEPS + 1):
+        answer = client.call(
+            model, messages, role=role.name, project=project, thinking=role.thinking,
+            max_tokens=max_tokens, temperature=role.temperature, fallback=fallback,
+            task=task, tools=specs,
+        )
+        for key in total:
+            total[key] += getattr(answer, key)
+        # Фолбэк — только на первом шаге: дальше в истории вызовы в диалекте
+        # ответившей модели, и чужой провайдер такую историю не примет.
+        model, fallback = answer.meta.get("model_id", model), None
+        if not answer.calls:
+            break
+        outputs = [(c["id"], session.run(c["name"], c["args"])) for c in answer.calls]
+        log.emit("tools", role=role.name, project=project, step=steps,
+                 calls=[f"{c['name']}({str(c['args'].get('path') or c['args'].get('query') or '')[:80]})"
+                        for c in answer.calls])
+        messages = [*messages, *client.tool_results(model, answer, outputs)]
+    assert answer is not None
+
+    text = answer.text
+    if answer.calls:
+        text = (f"{text}\n\n" if text else "") + \
+            f"[агент исчерпал {toolbox.MAX_STEPS} шагов с инструментами и не закончил]"
+    if session.written:
+        text = f"{text}\n\n{apply.report(session.written)}".strip()
+    return dataclasses.replace(
+        answer, text=text, calls=[], turn={},
+        cost=round(total["cost"], 6), seconds=round(total["seconds"], 2),
+        tokens_in=total["tokens_in"], tokens_out=total["tokens_out"],
+        tokens_cached=total["tokens_cached"], tokens_reasoning=total["tokens_reasoning"],
+        meta={**answer.meta, "steps": steps, "written": session.written},
     )
 
 
@@ -142,7 +196,7 @@ def read_page(project: str, url: str, question: str = "") -> dict:
     q = question or "Изложи содержание страницы по существу."
     a = ask(roles.need(project, "condense").name,
             prompts.render("condense_page", question=q, url=url, text=text),
-            project, retrieve=False)
+            project, retrieve=False, tools=False)
     return {"url": url, "chars": len(text), "summary": a.text, "cost": a.cost}
 
 
@@ -167,7 +221,7 @@ def research(query: str, project: str, pages: int = 3) -> dict:
     final = ask(
         roles.need(project, "condense").name,
         prompts.render("condense_material", question=query, name="источники", text=joined),
-        project, retrieve=False,
+        project, retrieve=False, tools=False,
     )
     cost += final.cost
     log.emit("research", project=project, query=query[:200], backend=backend,
@@ -243,7 +297,7 @@ def intake(project: str, file_path: str, question: str = "") -> dict:
         text = path.read_text(encoding="utf-8", errors="ignore")[:60000]
         a = ask(roles.need(project, "condense").name,
                 prompts.render("condense_material", question=task, name=path.name, text=text),
-                project, retrieve=False, max_tokens=4000)
+                project, retrieve=False, max_tokens=4000, tools=False)
         kind = "текст"
     else:
         raise ValueError(
@@ -266,7 +320,7 @@ def digest_text(project: str, text: str, question: str = "", source: str = "") -
     head = f"# Материал: {source}\n\n" if source else ""
     a = ask(roles.need(project, "condense").name,
             prompts.render("condense_material", question=task, name=source or "текст", text=head + text[:60000]),
-            project, retrieve=False, max_tokens=4000)
+            project, retrieve=False, max_tokens=4000, tools=False)
     note = (f"# {source or 'Вставленный текст'}\n\n"
             f"_Разобрано {time.strftime('%d.%m.%Y')} · текст · {a.model}._\n\n"
             f"{a.text.strip()}\n")
@@ -293,7 +347,7 @@ def rules_from_repo(project: str, repo: str, compress: bool = True) -> dict:
     a = ask(
         roles.need(project, "condense").name,
         prompts.render("condense_rules", sources=listing, text=text),
-        project, retrieve=False, max_tokens=4000,
+        project, retrieve=False, max_tokens=4000, tools=False,
     )
     note = (f"# Правила проекта\n\n"
             f"_Собрано {time.strftime('%d.%m.%Y')} из {repo} ({a.model}):_\n{listing}\n\n"

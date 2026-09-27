@@ -9,7 +9,11 @@
   * `temperature` у моделей 4.6 и новее УБРАН из API: запрос с ним отвергается
     четырёхсоткой, поэтому температура роли здесь не отправляется;
   * размышления включаются как `{"type": "adaptive"}` — фиксированный бюджет
-    токенов (`budget_tokens`) на этих моделях тоже отвергается.
+    токенов (`budget_tokens`) на этих моделях тоже отвергается;
+  * вызов инструмента — блок `tool_use` в ответе, а результат уходит обратно
+    блоком `tool_result` в сообщении пользователя, а не сообщением с ролью tool.
+    Ход модели возвращается целиком, с блоками размышлений: без них API
+    отвергает продолжение разговора с инструментами.
 
 Цены на вызовы задаются в реестре моделей руками: тарифы Anthropic провайдер
 в ответе не отдаёт, а придумывать их в отчёте о расходах нельзя.
@@ -35,7 +39,8 @@ def headers(provider: Provider) -> dict[str, str]:
     }
 
 
-def payload(model: Model, messages: list[dict], thinking: bool, max_tokens: int) -> dict:
+def payload(model: Model, messages: list[dict], thinking: bool, max_tokens: int,
+            tools: list[dict] | None = None) -> dict:
     """Тело запроса Messages API. Системные сообщения вынимаются в поле system."""
     system = "\n\n".join(
         str(m.get("content", "")) for m in messages if m.get("role") == "system"
@@ -47,6 +52,9 @@ def payload(model: Model, messages: list[dict], thinking: bool, max_tokens: int)
     }
     if system:
         body["system"] = system
+    if tools:
+        body["tools"] = [{"name": t["name"], "description": t["description"],
+                          "input_schema": t["parameters"]} for t in tools]
     # Выключать размышления явно не просим: на части моделей это отдельная
     # четырёхсотка, а на Opus 5 они и так включены по умолчанию.
     if thinking:
@@ -77,4 +85,15 @@ def read(data: dict, requested: str) -> dict:
         # Отдельного счётчика размышлений в ответе нет: они уже посчитаны в выходе.
         "tokens_reasoning": 0,
         "reasoning": reasoning,
+        "calls": [{"id": b.get("id", ""), "name": b.get("name", ""), "args": b.get("input") or {}}
+                  for b in blocks if b.get("type") == "tool_use"],
+        "turn": {"role": "assistant", "content": blocks},
     }
+
+
+def tool_results(turn: dict, outputs: list[tuple[str, str]]) -> list[dict]:
+    """Продолжение разговора после вызова инструментов: ход модели и результаты."""
+    return [turn, {"role": "user", "content": [
+        {"type": "tool_result", "tool_use_id": call_id, "content": text}
+        for call_id, text in outputs
+    ]}]

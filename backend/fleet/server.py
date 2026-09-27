@@ -102,7 +102,9 @@ def fleet_ask(role: str, task: str, project: str = "", extra: str = "") -> str:
       берётся то, к которому привязан рабочий каталог.
     extra: дополнительные материалы (куски кода, ответы API) — идут в промпт как есть.
 
-    Агенты НЕ пишут в файлы: возвращают код текстом, применяешь его ты.
+    Что агент может сделать сам, задаёт человек в карточке агента: с правом
+    «Чтение проекта» он читает репозиторий, с «Записью в файлы проекта» — правит
+    его и возвращает отчёт о файлах вместо кода. Без прав код приходит текстом.
     """
     a = agents.ask(role, task, _space(project), extra)
     head = (f"[{a.role} · {a.model} · {a.tokens_in}→{a.tokens_out} ток. · "
@@ -120,8 +122,9 @@ def fleet_task(role: str, task: str, project: str = "", extra: str = "") -> str:
     архитектора не тратятся на чтение того, что он всё равно не правит руками.
     Подходит для правок в файлах; для вопросов и обсуждений — fleet_ask.
 
-    Агент должен пометить каждый файл строкой-комментарием «# файл: путь»
-    (или «// файл: путь») — блоки без пути не записываются.
+    Агент с правом «Запись в файлы проекта» правит файлы сам. Без него он
+    помечает каждый блок строкой-комментарием «# файл: путь» (или «// файл:
+    путь»), и блоки раскладываются здесь; блоки без пути не записываются.
     """
     space = _space(project, write=True)
     repo = PROJECTS[space].repo if space else ""
@@ -130,7 +133,8 @@ def fleet_task(role: str, task: str, project: str = "", extra: str = "") -> str:
                 "Привяжи его в дашборде, вкладка «Пространства».")
 
     answer = agents.ask(role, task, space, extra)
-    written = apply.write(repo, answer.text)
+    # Агент с правом записи уже положил файлы сам, иначе раскладываем его ответ.
+    written = answer.meta.get("written") or apply.write(repo, answer.text)
     summary = (f"[{answer.role} · {answer.model} · "
                f"{answer.tokens_in}→{answer.tokens_out} ток. · "
                f"${answer.cost:.5f} · {answer.seconds}c]")

@@ -69,8 +69,10 @@ def save(ans, messages: list[dict], *, project: str = "", requested: str = "",
         "requested": requested,
         "project": project,
         "task": task,
-        "messages": [{"role": m.get("role"), "content": _clean(m.get("content"))}
+        "messages": [{"role": m.get("role"), "content": _clean(m.get("content")),
+                      **{k: m[k] for k in ("tool_calls", "tool_call_id") if k in m}}
                      for m in messages],
+        "calls": ans.calls,
         "text": ans.text,
         "reasoning": ans.reasoning,
         "tokens_in": ans.tokens_in,

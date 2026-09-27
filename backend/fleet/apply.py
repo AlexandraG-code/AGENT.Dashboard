@@ -124,92 +124,63 @@ def safe_path(root: Path, relative: str) -> Path:
     return resolved
 
 
-def write(
-    root: str,
-    answer: str,
-    allow: tuple[str, ...] = (
-        ".py",
-        ".ts",
-        ".tsx",
-        ".scss",
-        ".css",
-        ".md",
-        ".json",
-        ".sh",
-        ".yml",
-        ".yaml",
-        ".txt",
-    ),
-) -> list[dict]:
+# Что агенту можно записывать. Бинарники и исполняемое вне списка: модель
+# порождает текст, и всё прочее в её ответе — ошибка разбора, а не намерение.
+ALLOW: tuple[str, ...] = (
+    ".py", ".ts", ".tsx", ".js", ".jsx", ".scss", ".css", ".html", ".md", ".json",
+    ".sh", ".cmd", ".yml", ".yaml", ".toml", ".txt",
+)
+
+
+def put(root: Path, relative: str, content: str,
+        allow: tuple[str, ...] = ALLOW) -> dict:
+    """Записывает один файл внутри ``root`` и возвращает строку отчёта.
+
+    Общая точка для разбора ответа и для инструмента агента: проверки пути и
+    расширения не должны расходиться между двумя путями записи.
+    """
+    rel = relative.strip()
+    display_path = str(Path(rel)) if rel else rel
+    skipped = {"path": display_path, "action": "пропущен",
+               "lines_before": 0, "lines_after": 0}
+
+    try:
+        target = safe_path(root, rel)
+    except ValueError as exc:
+        return {**skipped, "reason": str(exc)}
+
+    suffix = target.suffix
+    if suffix not in allow:
+        return {**skipped, "reason": f"расширение {suffix or 'пустое'} не разрешено"}
+
+    target.parent.mkdir(parents=True, exist_ok=True)
+
+    if target.exists():
+        lines_before = len(target.read_text(encoding="utf-8").splitlines())
+        action = "обновлён"
+    else:
+        lines_before = 0
+        action = "создан"
+
+    # Ровно один перевод строки в конце: убираем все завершающие LF и добавляем один.
+    normalized = content.rstrip("\n") + "\n"
+    target.write_text(normalized, encoding="utf-8")
+
+    normalized_without_final = normalized.rstrip("\n")
+    lines_after = (
+        len(normalized_without_final.splitlines()) if normalized_without_final else 0
+    )
+    return {"path": display_path, "action": action, "lines_before": lines_before,
+            "lines_after": lines_after, "reason": ""}
+
+
+def write(root: str, answer: str, allow: tuple[str, ...] = ALLOW) -> list[dict]:
     """Раскладывает ответ по файлам внутри ``root`` и возвращает отчёт.
 
     Ничего не удаляет: вернуть удалённое невозможно, а удалить лишнее
     человек успеет сам.
     """
-    root_path = Path(root)
-    written: list[dict] = []
-
-    for relative, content in blocks(answer):
-        rel = relative.strip()
-        display_path = str(Path(rel)) if rel else rel
-
-        try:
-            target = safe_path(root_path, rel)
-        except ValueError as exc:
-            written.append(
-                {
-                    "path": display_path,
-                    "action": "пропущен",
-                    "lines_before": 0,
-                    "lines_after": 0,
-                    "reason": str(exc),
-                }
-            )
-            continue
-
-        suffix = target.suffix
-        if suffix not in allow:
-            written.append(
-                {
-                    "path": display_path,
-                    "action": "пропущен",
-                    "lines_before": 0,
-                    "lines_after": 0,
-                    "reason": f"расширение {suffix or 'пустое'} не разрешено",
-                }
-            )
-            continue
-
-        target.parent.mkdir(parents=True, exist_ok=True)
-
-        if target.exists():
-            before_text = target.read_text(encoding="utf-8")
-            lines_before = len(before_text.splitlines())
-            action = "обновлён"
-        else:
-            lines_before = 0
-            action = "создан"
-
-        # Ровно один перевод строки в конце: убираем все завершающие LF и добавляем один.
-        normalized = content.rstrip("\n") + "\n"
-        target.write_text(normalized, encoding="utf-8")
-
-        normalized_without_final = normalized.rstrip("\n")
-        lines_after = (
-            len(normalized_without_final.splitlines()) if normalized_without_final else 0
-        )
-
-        written.append(
-            {
-                "path": display_path,
-                "action": action,
-                "lines_before": lines_before,
-                "lines_after": lines_after,
-                "reason": "",
-            }
-        )
-
-    return written
+    return [put(Path(root), relative, content, allow) for relative, content in blocks(answer)]
 
 
 def report(written: list[dict]) -> str:

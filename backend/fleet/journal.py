@@ -219,7 +219,8 @@ def append_entry(project: str, facts: str, name: str = HISTORY) -> dict:
     today = time.strftime("%Y-%m-%d")
     task = prompts.render("journal_entry", project=project, document=name,
                           today=today, facts=facts)
-    answer = agents.ask(roles.need(project, "writer").name, task, project, retrieve=False)
+    answer = agents.ask(roles.need(project, "writer").name, task, project,
+                        retrieve=False, tools=False)
     path = context.write(project, name, answer.text, append=True)
     return {"note": answer.text, "model": answer.model, "cost": answer.cost, "file": str(path)}
 
@@ -228,6 +229,7 @@ def refresh_context(project: str) -> dict:
     """Пересобирает CONTEXT.md — короткую выжимку для начала следующей сессии."""
     task = prompts.render("journal_context", project=project,
                           history=read(project, HISTORY), tasks=read(project, TASKS))
-    answer = agents.ask(roles.need(project, "writer").name, task, project, retrieve=False)
+    answer = agents.ask(roles.need(project, "writer").name, task, project,
+                        retrieve=False, tools=False)
     path = context.write(project, CONTEXT, answer.text)
     return {"note": answer.text, "model": answer.model, "cost": answer.cost, "file": str(path)}

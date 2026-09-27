@@ -12,7 +12,7 @@
 
 import copy
 
-from . import charter, team
+from . import charter, team, toolbox
 from .config import ASSIGNMENTS, Role
 
 
@@ -32,9 +32,13 @@ def system(role: Role, project: str) -> str:
     побайтово одинаковый, и провайдер отдаёт его из префиксного кэша — у
     некоторых он дешевле промаха в десятки раз. Ролевой промпт после него
     короткий и у каждого свой.
+
+    Последней идёт строка о возможностях: она собирается из прав роли, а не
+    пишется в промпте руками, иначе промпт и настоящие права разойдутся.
     """
     rules = charter.brief(project, role.team)
-    return f"{rules}\n\n---\n\n{role.prompt}" if rules else role.prompt
+    own = f"{role.prompt}\n\n{toolbox.note(role)}"
+    return f"{rules}\n\n---\n\n{own}" if rules else own
 
 
 def assigned(project: str, key: str) -> Role | None:
