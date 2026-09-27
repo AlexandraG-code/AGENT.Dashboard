@@ -7,6 +7,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { RoleOut } from '@/shared/api'
+import { roleTitle } from '@/shared/lib/roleTitle'
 import { Panel } from '@/shared/ui'
 
 import { applyMention, matchRoles, mentionQuery } from '../lib/mentions'
@@ -46,6 +47,13 @@ export function TeamChat({ project, roles }: ITeamChatProps) {
 		return icon || '🤖'
 	}
 
+	// В ленте и подсказках — имя для людей; в тексте сообщения остаётся ключ,
+	// потому что по «@ключ» бэкенд понимает, кого позвали.
+	const pickName = (author: string): string => {
+		const role = roles.find((item) => item.name === author)
+		return role ? roleTitle(role) : author
+	}
+
 	return (
 		<Panel title={t('chat.title')} subtitle={t('chat.subtitle')}>
 			<div className={styles.feed}>
@@ -62,7 +70,7 @@ export function TeamChat({ project, roles }: ITeamChatProps) {
 					>
 						<header className={styles.head}>
 							<span className={styles.icon}>{pickIcon(message.author)}</span>
-							<b>{message.author}</b>
+							<b>{pickName(message.author)}</b>
 							{message.model !== '' && <span className={styles.model}>{message.model}</span>}
 							<time className={styles.time}>
 								{new Date(message.ts * 1000).toLocaleTimeString('ru-RU')}
@@ -92,12 +100,14 @@ export function TeamChat({ project, roles }: ITeamChatProps) {
 								}}
 							>
 								<span className={styles.icon}>{pickIcon(name)}</span>
-								{name}
+								{pickName(name)}
+								{pickName(name) !== name && <span className={styles.model}>@{name}</span>}
 							</button>
 						))}
 					</div>
 				)}
 				<Input.TextArea
+					className={styles.input}
 					rows={2}
 					value={chat.draft}
 					placeholder={t('chat.placeholder')}
@@ -113,7 +123,7 @@ export function TeamChat({ project, roles }: ITeamChatProps) {
 						}
 					}}
 				/>
-				<Button type="primary" loading={chat.sending} onClick={() => void chat.send()}>
+				<Button className={styles.send} type="primary" loading={chat.sending} onClick={() => void chat.send()}>
 					{t('chat.send')}
 				</Button>
 			</div>

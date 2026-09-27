@@ -6,7 +6,10 @@
 	display: flex;
 	flex-direction: column;
 	gap: var(--gap-2);
-	max-height: 55vh;
+	// Было max-height: 55vh — фактическая высота ленты менялась при каждом
+	// опросе (раз в 2 сек приходят новые сообщения), и вместе с ней прыгала
+	// строка ввода под лентой. Фиксированная высота убирает эти скачки.
+	height: 55vh;
 	overflow: auto;
 	padding-right: var(--gap-1);
 }
@@ -75,13 +78,26 @@
 	gap: var(--gap-2);
 	align-items: flex-end;
 	position: relative;
-
-	> *:first-child {
-		flex: 1;
-	}
 }
 
+// Растягивается только поле ввода: попап упоминаний вынесен из потока,
+// а кнопка не должна сжиматься, когда в ней появляется спиннер отправки.
+.input {
+	flex: 1;
+	min-width: 0;
+}
+
+.send {
+	flex: none;
+}
+
+// glass подключается первым: он ставит position: relative, и если объявить его
+// после absolute, попап вернётся в поток строки ввода и сдвинет поле и кнопку.
 .mentions {
+	@include glass(var(--radius-sm));
+	// Сквозь полупрозрачное стекло просвечивали сообщения ленты, и список было
+	// не прочесть. Поверхность темы кладём на сплошной фон, чтобы цвет остался тем же.
+	background: linear-gradient(var(--surface), var(--surface)), var(--bg-base);
 	position: absolute;
 	bottom: 100%;
 	left: 0;
@@ -90,7 +106,6 @@
 	min-width: 14rem;
 	max-height: 12rem;
 	overflow: auto;
-	@include glass(var(--radius-sm));
 	padding: 0.25rem;
 	display: flex;
 	flex-direction: column;
@@ -113,7 +128,4 @@
 	&.active {
 		background: var(--surface-3);
 	}
-}
-
-.active {
 }
