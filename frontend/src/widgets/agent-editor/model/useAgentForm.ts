@@ -21,6 +21,7 @@ const blank = (model: string): RoleOut => ({
 	lead: false,
 	deputy: false,
 	external: false,
+	subagent: false,
 	icon: '🤖',
 	tools: [],
 	team: ''
@@ -54,6 +55,16 @@ export function useAgentForm(
 
 	const patch = <K extends keyof RoleOut>(field: K, value: RoleOut[K]) =>
 		setDraft((prev) => ({ ...prev, [field]: value }))
+
+	// Субагента запускает Claude Code, поэтому он всегда внешний, а модель у
+	// него из списка Claude Code, а не из реестра: прежняя модель там не значится.
+	const toggleSubagent = (value: boolean, claudeModels: string[]) =>
+		setDraft((prev) => ({
+			...prev,
+			subagent: value,
+			external: value || prev.external,
+			model: value && !claudeModels.includes(prev.model) ? (claudeModels[0] ?? prev.model) : prev.model
+		}))
 
 	const select = (name: string) => {
 		const role = roles.find((item) => item.name === name)
@@ -91,6 +102,7 @@ export function useAgentForm(
 	return {
 		draft,
 		patch,
+		toggleSubagent,
 		selected,
 		isNew: selected === null,
 		open,

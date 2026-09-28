@@ -150,7 +150,11 @@ def summary(days: int = 30) -> dict:
         return result
 
     edge = time.time() - days * 86400
-    for path in SESSIONS.glob("*/*.jsonl"):
+    # Субагенты (валидатор на Haiku, эксперт на Opus) пишут свои ходы не в файл
+    # сессии, а рядом, в <сессия>/subagents/: без второго шаблона их расход не
+    # виден, и комитет выглядит бесплатнее, чем есть.
+    files = [*SESSIONS.glob("*/*.jsonl"), *SESSIONS.glob("*/*/subagents/*.jsonl")]
+    for path in files:
         try:
             stat = path.stat()
         except OSError:

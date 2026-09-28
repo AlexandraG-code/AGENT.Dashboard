@@ -109,6 +109,7 @@ def all_roles(project: str) -> list[dict]:
             "team": r.team,
             "lead": r.lead,
             "external": r.external,
+            "subagent": r.subagent,
             "deputy": r.deputy,
             "icon": r.icon,
             "tools": list(r.tools),

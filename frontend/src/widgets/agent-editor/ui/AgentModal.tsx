@@ -38,6 +38,8 @@ export function AgentModal({ form, models, teams, setup, hints, canDelete }: IAg
 		value: id,
 		label: `${id} — ${model.price_out > 0 ? t('common.perMillion', { price: model.price_out }) : t('common.free')}`
 	}))
+	const subagentModels = setup?.subagent_models ?? []
+	const subagentOptions = subagentModels.map((id) => ({ value: id, label: `${id} — ${t('agents.bySubscription')}` }))
 
 	return (
 		<Modal
@@ -92,13 +94,23 @@ export function AgentModal({ form, models, teams, setup, hints, canDelete }: IAg
 						<Switch checked={form.draft.lead} onChange={(value) => form.patch('lead', value)} />
 					</Form.Item>
 					<Form.Item label={t('agents.external')} help={t('agents.externalHint')}>
-						<Switch checked={form.draft.external} onChange={(value) => form.patch('external', value)} />
+						<Switch
+							checked={form.draft.external}
+							disabled={form.draft.subagent}
+							onChange={(value) => form.patch('external', value)}
+						/>
+					</Form.Item>
+					<Form.Item label={t('agents.subagent')} help={t('agents.subagentHint')}>
+						<Switch
+							checked={form.draft.subagent}
+							onChange={(value) => form.toggleSubagent(value, subagentModels)}
+						/>
 					</Form.Item>
 					<Form.Item label={t('agents.model')}>
 						<Select
 							value={form.draft.model}
 							onChange={(value) => form.patch('model', value)}
-							options={modelOptions}
+							options={form.draft.subagent ? subagentOptions : modelOptions}
 						/>
 					</Form.Item>
 					<Form.Item label={t('agents.fallback')} help={t('agents.fallbackHint')}>

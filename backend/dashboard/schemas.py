@@ -113,6 +113,7 @@ class RoleOut(BaseModel):
     prompt: str = ""
     lead: bool = False
     external: bool = False
+    subagent: bool = False
     deputy: bool = False
     icon: str = ""
     tools: list[str] = []
@@ -403,6 +404,7 @@ class ChartRole(BaseModel):
     provider: str = ""
     description: str = ""
     external: bool = False
+    subagent: bool = False
     fallback_model: str | None = None
     plan: str = ""
 
@@ -420,6 +422,7 @@ class ChartOut(BaseModel):
 
     lead: ChartRole | None = None
     deputy: ChartRole | None = None
+    committee: list[ChartRole] = []
     council: list[ChartRole] = []
     workers: list[ChartRole] = []
     failover: list[ChartFailover] = []
@@ -442,11 +445,15 @@ class AssignmentOut(BaseModel):
 
 
 class SetupOut(BaseModel):
-    """Устройство команды: что можно выдать роли, кто чем занят и какие есть отделы."""
+    """Устройство команды: что можно выдать роли, кто чем занят и какие есть отделы.
+
+    `subagent_models` — что Claude Code принимает моделью субагента: реестр тут
+    ни при чём, эти модели работают по подписке, а не через наш клиент."""
 
     tools: list[ToolOut]
     assignments: list[AssignmentOut]
     teams: list["TeamOut"] = []
+    subagent_models: list[str] = []
 
 
 class PromptOut(BaseModel):

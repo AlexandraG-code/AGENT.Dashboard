@@ -149,6 +149,12 @@ class Role:
     процессе). Вызовов через `fleet.client` у него нет, а промпт лежит в
     CLAUDE.md рабочего репозитория, где он его и читает.
 
+    `subagent` — внешний агент, которого главный запускает сам как субагента
+    Claude Code (валидатор, эксперт на сложные случаи). Дашборд пишет ему файл
+    `.claude/agents/<name>.md` в клон пространства (см. fleet/subagents.py):
+    иначе промпт пришлось бы держать в двух местах, и они бы разошлись.
+    `model` у него — то, что понимает Claude Code: haiku, sonnet, opus, inherit.
+
     `deputy` — заместитель главного: пока главный на месте, работает своей
     ролью, а когда тот недоступен, принимает его задачи. Внешнего главного
     (Claude Code в своём процессе) наш клиент вызвать не может в принципе,
@@ -182,6 +188,7 @@ class Role:
     description: str = ""
     lead: bool = False
     external: bool = False
+    subagent: bool = False
     deputy: bool = False
     icon: str = ""
     prompt: str = ""

@@ -363,7 +363,8 @@ def fleet_roles(project: str = "") -> str:
     lines = []
     for r in roles.all_roles(space):
         marks = [m for m, on in (("главный", r["lead"]), ("заместитель", r["deputy"]),
-                                 ("внешний", r["external"])) if on]
+                                 ("внешний", r["external"]),
+                                 ("субагент Claude Code", r["subagent"])) if on]
         tools = ", ".join(r["tools"]) or "без инструментов"
         tail = f" [{', '.join(marks)}]" if marks else ""
         # Человек зовёт агента по имени («Дипсик»), а в инструменты уходит ключ:

@@ -1031,6 +1031,11 @@ export interface components {
             lead?: components["schemas"]["ChartRole"] | null;
             deputy?: components["schemas"]["ChartRole"] | null;
             /**
+             * Committee
+             * @default []
+             */
+            committee: components["schemas"]["ChartRole"][];
+            /**
              * Council
              * @default []
              */
@@ -1059,6 +1064,11 @@ export interface components {
             /** Name */
             name: string;
             /**
+             * Title
+             * @default
+             */
+            title: string;
+            /**
              * Icon
              * @default
              */
@@ -1083,6 +1093,11 @@ export interface components {
              * @default false
              */
             external: boolean;
+            /**
+             * Subagent
+             * @default false
+             */
+            subagent: boolean;
             /** Fallback Model */
             fallback_model?: string | null;
             /**
@@ -2115,7 +2130,9 @@ export interface components {
          * @description Настройки агента из формы. prompt=None означает «промпт не трогать».
          *
          *     `lead` — главный, тот кто раздаёт задачи; `external` — работает вне нашего
-         *     клиента (свой процесс, своя подписка), поэтому его модель в реестре не нужна.
+         *     клиента (свой процесс, своя подписка), поэтому его модель в реестре не нужна;
+         *     `subagent` — внешний, которого запускает сам Claude Code: ему пишется файл
+         *     в `.claude/agents/` клона.
          */
         RoleIn: {
             /** Project */
@@ -2166,6 +2183,11 @@ export interface components {
              * @default false
              */
             external: boolean;
+            /**
+             * Subagent
+             * @default false
+             */
+            subagent: boolean;
             /**
              * Deputy
              * @default false
@@ -2238,6 +2260,11 @@ export interface components {
              * @default false
              */
             external: boolean;
+            /**
+             * Subagent
+             * @default false
+             */
+            subagent: boolean;
             /**
              * Deputy
              * @default false
@@ -2393,6 +2420,9 @@ export interface components {
         /**
          * SetupOut
          * @description Устройство команды: что можно выдать роли, кто чем занят и какие есть отделы.
+         *
+         *     `subagent_models` — что Claude Code принимает моделью субагента: реестр тут
+         *     ни при чём, эти модели работают по подписке, а не через наш клиент.
          */
         SetupOut: {
             /** Tools */
@@ -2404,6 +2434,11 @@ export interface components {
              * @default []
              */
             teams: components["schemas"]["TeamOut"][];
+            /**
+             * Subagent Models
+             * @default []
+             */
+            subagent_models: string[];
         };
         /**
          * Slot

@@ -29,7 +29,7 @@ from dashboard.schemas import (  # noqa: E402
 )
 from fleet import (agents, avatars, chart, charter, chat, context, hints, layout,  # noqa: E402
                    log, migrate, paths, prompts, providers, repo_rules, roles,
-                   running, secrets, stats, team, transcript, usage)
+                   running, secrets, stats, subagents, team, transcript, usage)
 from fleet.config import (ASSIGNMENTS, MODELS, PROJECTS, PROVIDERS,  # noqa: E402
                           SCOPES, TOOLS)
 from fleet.config import provider as get_provider  # noqa: E402
@@ -124,7 +124,9 @@ class RoleIn(BaseModel):
     """Настройки агента из формы. prompt=None означает «промпт не трогать».
 
     `lead` — главный, тот кто раздаёт задачи; `external` — работает вне нашего
-    клиента (свой процесс, своя подписка), поэтому его модель в реестре не нужна."""
+    клиента (свой процесс, своя подписка), поэтому его модель в реестре не нужна;
+    `subagent` — внешний, которого запускает сам Claude Code: ему пишется файл
+    в `.claude/agents/` клона."""
 
     project: str
     name: str
@@ -138,6 +140,7 @@ class RoleIn(BaseModel):
     prompt: str | None = None
     lead: bool = False
     external: bool = False
+    subagent: bool = False
     deputy: bool = False
     icon: str = ""
     tools: list[str] = []
@@ -295,6 +298,7 @@ def team_setup(project: str = "") -> dict:
     comp = team.of(project) if project in PROJECTS else team.Composition(project="")
     return {
         "tools": [{"key": key, "title": title} for key, title in TOOLS.items()],
+        "subagent_models": list(subagents.MODELS),
         "assignments": [
             {"key": key, "title": title, "role": comp.role_for.get(key, "")}
             for key, title in ASSIGNMENTS.items()
@@ -515,7 +519,8 @@ def role_save(body: RoleIn) -> dict:
             description=body.description,
             fallback=body.fallback, thinking=body.thinking,
             max_tokens=body.max_tokens, temperature=body.temperature,
-            lead=body.lead, external=body.external, deputy=body.deputy, icon=body.icon,
+            lead=body.lead, external=body.external, subagent=body.subagent,
+            deputy=body.deputy, icon=body.icon,
             tools=body.tools, team=body.team,
         )
     except ValueError as exc:

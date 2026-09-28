@@ -71,6 +71,16 @@ export function TeamChart({ chart }: ITeamChartProps) {
 					</div>
 				) : null}
 
+				{chart.committee.length > 0 && <h4 className={styles.level}>{t('chart.committee')}</h4>}
+				{chart.committee.map((role) => (
+					<div className={styles.role} key={role.name}>
+						<span className={styles.icon}>{role.icon || '🤖'}</span>
+						<b>{roleTitle(role)}</b>
+						<span className={styles.model}>{role.model}</span>
+						<Tag>{t('chart.subagent')}</Tag>
+					</div>
+				))}
+
 				<h4 className={styles.level}>{t('chart.council')}</h4>
 				{chart.council.map((role) => (
 					<div className={styles.role} key={role.name}>

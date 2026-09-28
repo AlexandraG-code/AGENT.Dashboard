@@ -24,12 +24,12 @@ MCP-сервер увидит это сам, перезапускать его �
 import json
 from dataclasses import dataclass, field, replace
 
-from . import layout, paths
+from . import layout, paths, subagents
 from .config import (ASSIGNMENTS, MODELS, PROJECTS, PROVIDERS, SCOPES, TOOLS,
                      Document, Model, Provider, Role, Team, Workspace)
 
 FIELDS = ("title", "model", "thinking", "max_tokens", "temperature", "fallback", "description",
-          "lead", "external", "deputy", "icon", "prompt", "tools", "team")
+          "lead", "external", "subagent", "deputy", "icon", "prompt", "tools", "team")
 TEAM_FIELDS = ("title", "description")
 DOC_FIELDS = ("title", "scope", "team", "order")
 PROJECT_FIELDS = ("title", "sign_code", "rule_globs")
@@ -191,6 +191,8 @@ def save(comp: Composition) -> None:
     file = layout.team_file(comp.project, create=True)
     file.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     _teams[comp.project] = (file.stat().st_mtime, comp)
+    space = PROJECTS.get(comp.project)
+    subagents.write(comp.project, comp.roles, space.repo if space else "")
 
 
 # --- правка состава ---------------------------------------------------------
@@ -218,9 +220,13 @@ def _clean(fields: dict) -> dict:
         out["tools"] = [t for t in (str(x).strip() for x in given) if t in TOOLS]
     if "thinking" in fields:
         out["thinking"] = bool(fields["thinking"])
-    for flag in ("lead", "external", "deputy"):
+    for flag in ("lead", "external", "subagent", "deputy"):
         if flag in fields:
             out[flag] = bool(fields[flag])
+    # Субагента запускает Claude Code в своём процессе, наш клиент его не
+    # вызывает: внутренний субагент означал бы роль, которую некому запустить.
+    if out.get("subagent"):
+        out["external"] = True
     if "max_tokens" in fields:
         out["max_tokens"] = max(256, min(32000, int(fields["max_tokens"])))
     if "temperature" in fields:
@@ -411,6 +417,9 @@ def set_project(project_id: str, title: str, repo: str | None = None,
         donor = of(copy_from)
         save(Composition(project=name, roles=dict(donor.roles), teams=dict(donor.teams),
                          docs=dict(donor.docs), role_for=dict(donor.role_for)))
+    elif repo is not None and not fresh:
+        # Клон указали или сменили — субагентам пора в его .claude/agents.
+        subagents.write(name, of(name).roles, PROJECTS[name].repo)
     return name
 
 

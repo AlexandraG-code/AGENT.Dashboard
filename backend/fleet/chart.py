@@ -42,6 +42,7 @@ def _role_view(role: Role) -> dict:
         "provider": provider,
         "description": role.description,
         "external": role.external,
+        "subagent": role.subagent,
         "fallback_model": role.fallback,
         "plan": plan,
     }
@@ -66,15 +67,17 @@ def _deputy(comp: team.Composition) -> Role | None:
 def tree(project: str) -> dict:
     """Иерархия команды как словарь.
 
-    Возвращает lead, deputy, совет (consultant/opponent) и остальных
-    исполнителей. Каждая роль дополнена провайдером и планом модели.
+    Возвращает lead, deputy, комитет (субагенты Claude Code при главном),
+    совет (consultant/opponent) и остальных исполнителей. Каждая роль дополнена
+    провайдером и планом модели.
     """
     comp = team.of(project)
     lead = _lead(comp)
     deputy = _deputy(comp)
     names = _council_names(comp)
     council = [_role_view(role) for name in names if (role := comp.roles.get(name)) is not None]
-    excluded = set(names)
+    committee = [role for role in comp.roles.values() if role.subagent]
+    excluded = set(names) | {role.name for role in committee}
     if lead is not None:
         excluded.add(lead.name)
     if deputy is not None:
@@ -85,6 +88,7 @@ def tree(project: str) -> dict:
     return {
         "lead": _role_view(lead) if lead else None,
         "deputy": _role_view(deputy) if deputy else None,
+        "committee": [_role_view(role) for role in committee],
         "council": council,
         "workers": workers,
     }
@@ -106,7 +110,11 @@ def failover(project: str) -> list[dict]:
             steps.append(f"та же роль на резервной модели {role.fallback}")
         # Человекозамена нужна только там, где роль занимает уникальное
         # место в иерархии: внешний агент, главный и сам заместитель.
-        if role.external or role.lead:
+        if role.subagent:
+            # Субагента запускает сам главный, заместитель его не заменит:
+            # без валидатора главный проверяет сам, без эксперта — решает сам.
+            steps.append("главный делает эту работу сам")
+        elif role.external or role.lead:
             if deputy is not None and deputy.name != role.name:
                 steps.append(f"задачи уходят к заместителю {deputy.name}")
             else:
@@ -144,16 +152,21 @@ def mermaid(project: str) -> str:
 
     names = _council_names(comp)
     council_roles = [r for r in (comp.roles.get(n) for n in names) if r is not None]
-    excluded = set(names)
+    committee = [r for r in comp.roles.values() if r.subagent]
+    excluded = set(names) | {r.name for r in committee}
     if lead is not None:
         excluded.add(lead.name)
     if deputy is not None:
         excluded.add(deputy.name)
     workers = [r for r in comp.roles.values() if r.name not in excluded]
 
-    for role in council_roles + workers:
+    for role in committee + council_roles + workers:
         lines.append(f'    {role.name}["{label(role)}"]')
 
+    if lead is not None:
+        # Пунктир: субагент не подчинённый в очереди задач, его зовёт сам главный.
+        for role in committee:
+            lines.append(f"    {lead.name} -.-> {role.name}")
     if lead is not None and deputy is not None:
         lines.append(f"    {lead.name} --> {deputy.name}")
     if deputy is not None:
@@ -191,6 +204,7 @@ def markdown(project: str) -> str:
     for section in ("lead", "deputy"):
         if t[section] is not None:
             ordered.append(t[section])
+    ordered.extend(t["committee"])
     ordered.extend(t["council"])
     ordered.extend(t["workers"])
     for r in ordered:

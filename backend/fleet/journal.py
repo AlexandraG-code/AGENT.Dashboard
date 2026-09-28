@@ -12,7 +12,7 @@
 
 import time
 
-from . import agents, context, prompts, roles
+from . import agents, context, prompts, roles, subagents, team
 
 ARCHITECTURE = "ARCHITECTURE.md"
 HISTORY = "HISTORY.md"
@@ -103,7 +103,10 @@ def brief(project: str) -> str:
     длинные и нужны не всегда, их читают отдельно и по надобности.
     """
     ensure(project)
-    parts = [read(project, name).strip() for name in (CONTEXT, TASKS, BUGS)]
+    # Устройство команды идёт первым: без него главный не знает, кого из
+    # субагентов звать, а файлы доски без этого читаются иначе.
+    parts = [subagents.briefing(project, team.of(project).roles)]
+    parts += [read(project, name).strip() for name in (CONTEXT, TASKS, BUGS)]
     return "\n\n---\n\n".join(part for part in parts if part)
 
 
