@@ -1,17 +1,16 @@
 'use client'
+// Написано агентом senior (glm-5.3) по ТЗ главного архитектора; перенесено из widgets/model-registry, импорты из @/shared/ui.
 
 import { Button, Form, Input, InputNumber, Select, Switch } from 'antd'
 import { useTranslation } from 'react-i18next'
 
 import type { ModelOut, ProviderOut } from '@/shared/api'
-import { Panel, Toolbar } from '@/shared/ui'
+import { CheckResult, Panel, RegistryList, Toolbar } from '@/shared/ui'
 
 import { CLAUDE_MODEL_PRESETS } from '../lib/presets'
 import { useModelCatalog } from '../model/useModelCatalog'
 import { useModelForm } from '../model/useModelForm'
 import { CatalogTable } from './CatalogTable'
-import { CheckResult } from './CheckResult'
-import { RegistryList } from './RegistryList'
 import styles from './Registry.module.scss'
 
 interface IModelRegistryProps {

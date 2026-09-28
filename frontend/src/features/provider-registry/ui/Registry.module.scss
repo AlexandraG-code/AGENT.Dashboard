@@ -1,0 +1,46 @@
+// Написано агентом senior (glm-5.3) по ТЗ главного архитектора; только классы ProviderRegistry из widgets/model-registry.
+
+.presets {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--gap-1);
+}
+
+// Поля формы идут строкой и переносятся, когда кончается ширина. Сетка с
+// равными колонками растягивала короткие поля («Параллелизм») на всю ячейку и
+// рвала длинные адреса — читалось как месиво.
+.fields {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0 1.5em;
+
+	:global(.ant-form-item) {
+		flex: 1 1 14rem;
+		min-width: 12rem;
+		margin-bottom: 1em;
+	}
+
+	// Поля, которым нужна вся ширина: адрес API и заголовки.
+	:global(.ant-form-item):has(textarea) {
+		flex: 1 1 24rem;
+	}
+}
+
+.switches {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--gap-3);
+	align-items: center;
+}
+
+.switch {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	font-size: 0.9rem;
+}
+
+.hint {
+	color: var(--text-dim);
+	font-size: 0.82rem;
+}

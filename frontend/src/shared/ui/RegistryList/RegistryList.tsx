@@ -1,4 +1,5 @@
 'use client'
+// Написано агентом senior (glm-5.3) по ТЗ главного архитектора; перенесено 1:1 из widgets/model-registry.
 
 import clsx from 'clsx'
 

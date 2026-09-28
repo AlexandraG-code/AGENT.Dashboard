@@ -1,6 +1,7 @@
 'use client'
 // Написано агентом junior (glm-5.3-flash) по ТЗ главного архитектора;
 // правки главного: именованный экспорт вместо default.
+// Перенесено 1:1 из widgets/model-registry.
 
 import { Button, Table } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
