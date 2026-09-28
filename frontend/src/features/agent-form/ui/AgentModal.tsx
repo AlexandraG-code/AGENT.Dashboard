@@ -1,3 +1,4 @@
+// Написано агентом senior (deepseek-v4-pro) по ТЗ главного архитектора
 'use client'
 
 import { Button, Checkbox, Form, Input, InputNumber, Modal, Select, Switch } from 'antd'
@@ -8,7 +9,7 @@ import { roleTitle } from '@/shared/lib/roleTitle'
 import { Toolbar } from '@/shared/ui'
 
 import type { IAgentForm } from '../model/useAgentForm'
-import styles from './AgentEditor.module.scss'
+import styles from './AgentModal.module.scss'
 
 interface IAgentModalProps {
 	form: IAgentForm
@@ -109,7 +110,7 @@ export function AgentModal({ form, models, teams, setup, hints, canDelete }: IAg
 					<Form.Item label={t('agents.model')}>
 						<Select
 							value={form.draft.model}
-							onChange={(value) => form.patch('model', value)}
+							onChange={(value: string) => form.patch('model', value)}
 							options={form.draft.subagent ? subagentOptions : modelOptions}
 						/>
 					</Form.Item>

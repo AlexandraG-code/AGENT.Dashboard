@@ -5,7 +5,7 @@
 
 .DESCRIPTION
     Поднимает две части в отдельных окнах: бэкенд на 8770 (API, Swagger на
-    /docs) и фронт на 3001. В браузере нужен только 3001 — он сам проксирует
+    /docs) и фронт на 3002. В браузере нужен только 3002 — он сам проксирует
     /api на бэкенд.
 
     MCP-сервер здесь не запускается намеренно: его поднимает сам Claude Code
@@ -59,17 +59,17 @@ if ($ready) {
     Write-Host '   API не ответил за 15 секунд — смотри его окно, запуск продолжаю' -ForegroundColor Yellow
 }
 
-Write-Host '== Поднимаю интерфейс на 3001' -ForegroundColor Cyan
+Write-Host '== Поднимаю интерфейс на 3002' -ForegroundColor Cyan
 Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', 'yarn dev' -WorkingDirectory $frontend
 
 if (-not $NoBrowser) {
     Start-Sleep -Seconds 4
-    Start-Process 'http://localhost:3001'
+    Start-Process 'http://localhost:3002'
 }
 
 Write-Host @"
 
-Дашборд:       http://localhost:3001
+Дашборд:       http://localhost:3002
 API и Swagger: http://localhost:8770/docs
 
 Закрыть — закрыть два окна, которые открылись.

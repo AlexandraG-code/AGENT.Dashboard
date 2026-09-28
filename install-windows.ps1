@@ -216,7 +216,7 @@ Write-Host "`n== Готово" -ForegroundColor Cyan
 Write-Host @"
 
 Запуск:      $(Join-Path $Path 'start-windows.ps1')
-Дашборд:     http://localhost:3001
+Дашборд:     http://localhost:3002
 API и Swagger: http://localhost:8770/docs
 
 Осталось заполнить руками — это про машину, а не про проект, поэтому в git его нет:

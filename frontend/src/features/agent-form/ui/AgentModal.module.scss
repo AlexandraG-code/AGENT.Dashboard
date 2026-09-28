@@ -1,0 +1,22 @@
+// Написано агентом senior (deepseek-v4-pro) по ТЗ главного архитектора
+.fields {
+	display: grid;
+	gap: 0 var(--gap-2);
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.hint {
+	color: var(--text-dim);
+	font-size: 0.82rem;
+}
+
+.wide {
+	flex: 1 1 100%;
+}
+
+.hints {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--gap-1);
+	margin-bottom: var(--gap-2);
+}

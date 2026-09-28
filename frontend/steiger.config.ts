@@ -16,5 +16,14 @@ export default defineConfig([
 			'fsd/no-segmentless-slices': 'off',
 			'fsd/no-public-api-sidestep': 'off'
 		}
+	},
+	{
+		// Фичи здесь режутся не ради переиспользования между виджетами, а ради
+		// границы одного законченного действия (создать агента, тегнуть агента
+		// в чате) — единственный потребитель слайса это не ошибка, а сама суть.
+		files: ['src/features/**'],
+		rules: {
+			'fsd/insignificant-slice': 'off'
+		}
 	}
 ])

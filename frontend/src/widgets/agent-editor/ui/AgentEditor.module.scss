@@ -14,16 +14,6 @@
 	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 }
 
-.hint {
-	color: var(--text-dim);
-	font-size: 0.82rem;
-}
-
-// Поля, которым нужна вся ширина формы: длинные списки и наборы отметок.
-.wide {
-	flex: 1 1 100%;
-}
-
 // Служебные места команды: по колонке на каждое, чтобы список не растягивался в столбик.
 .assignments {
 	display: grid;
@@ -33,14 +23,6 @@
 
 .setup {
 	grid-column: 1 / -1;
-}
-
-// Кнопки подсказок над полем промпта: их много, поэтому переносятся по строкам.
-.hints {
-	display: flex;
-	flex-wrap: wrap;
-	gap: var(--gap-1);
-	margin-bottom: var(--gap-2);
 }
 
 .column {

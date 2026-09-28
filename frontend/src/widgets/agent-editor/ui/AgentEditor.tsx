@@ -8,11 +8,9 @@ import { roleTitle } from '@/shared/lib/roleTitle'
 import { useOrg } from '@/shared/model'
 import { NavList, Panel } from '@/shared/ui'
 
-import { useAgentForm } from '../model/useAgentForm'
-import { useHints } from '../model/useHints'
+import { AgentModal, useAgentForm, useHints } from '@/features/agent-form'
 import { useTeamForm } from '../model/useTeamForm'
 import { useTeamSetup } from '../model/useTeamSetup'
-import { AgentModal } from './AgentModal'
 import { TeamCard } from './TeamCard'
 import styles from './AgentEditor.module.scss'
 

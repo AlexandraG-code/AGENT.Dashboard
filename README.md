@@ -58,10 +58,10 @@ cd frontend && yarn install && cd ..
 cd backend && ./run-dashboard.sh          # http://localhost:8770
 
 # терминал 2 — интерфейс
-cd frontend && yarn dev                   # http://localhost:3001
+cd frontend && yarn dev                   # http://localhost:3002
 ```
 
-Интерфейс живёт на 3001 и сам проксирует `/api` на 8770 — в браузере нужен только 3001.
+Интерфейс живёт на 3002 и сам проксирует `/api` на 8770 — в браузере нужен только 3002.
 По адресу 8770 лежит Swagger (`/docs`) и ReDoc (`/redoc`): посмотреть эндпоинты и подёргать
 их руками.
 

@@ -1,3 +1,4 @@
+// Написано агентом senior (deepseek-v4-pro) по ТЗ главного архитектора
 'use client'
 
 import { useEffect, useState } from 'react'
