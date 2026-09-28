@@ -1,0 +1,53 @@
+// Написано агентом junior (glm-5.3-flash) по ТЗ главного архитектора.
+// файл: frontend/src/features/mention-agent/ui/MentionSuggestions.module.scss
+@use '@/shared/styles/mixins' as *;
+
+// glass подключается первым: он ставит position: relative, и если объявить его
+// после absolute, попап вернётся в поток строки ввода и сдвинет поле и кнопку.
+.mentions {
+	@include glass(var(--radius-sm));
+	// Сквозь полупрозрачное стекло просвечивали сообщения ленты, и список было
+	// не прочесть. Поверхность темы кладём на сплошной фон, чтобы цвет остался тем же.
+	background: linear-gradient(var(--surface), var(--surface)), var(--bg-base);
+	position: absolute;
+	bottom: 100%;
+	left: 0;
+	z-index: 5;
+	margin-bottom: var(--gap-1);
+	min-width: 14rem;
+	max-height: 12rem;
+	overflow: auto;
+	padding: 0.25rem;
+	display: flex;
+	flex-direction: column;
+}
+
+.mention {
+	display: flex;
+	align-items: center;
+	gap: var(--gap-2);
+	width: 100%;
+	padding: 0.35rem 0.5rem;
+	border: 0;
+	border-radius: var(--radius-sm);
+	background: transparent;
+	color: var(--text);
+	text-align: left;
+	cursor: pointer;
+
+	&:hover,
+	&.active {
+		background: var(--surface-3);
+	}
+}
+
+.icon {
+	font-size: 1.1rem;
+	line-height: 1;
+}
+
+.model {
+	@include mono;
+	font-size: 0.72rem;
+	color: var(--text-mute);
+}

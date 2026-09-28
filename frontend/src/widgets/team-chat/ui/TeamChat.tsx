@@ -3,14 +3,13 @@
 
 import { Button, Input } from 'antd'
 import clsx from 'clsx'
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { RoleOut } from '@/shared/api'
 import { roleTitle } from '@/shared/lib/roleTitle'
 import { Panel } from '@/shared/ui'
+import { MentionSuggestions, useMentions } from '@/features/mention-agent'
 
-import { applyMention, matchRoles, mentionQuery } from '../lib/mentions'
 import { useTeamChat } from '../model/useTeamChat'
 import styles from './TeamChat.module.scss'
 
@@ -30,16 +29,6 @@ interface ITeamChatProps {
 export function TeamChat({ project, roles }: ITeamChatProps) {
 	const { t } = useTranslation()
 	const chat = useTeamChat(project)
-	const [caret, setCaret] = useState(0)
-
-	const query = mentionQuery(chat.draft, caret)
-	const suggestions =
-		query === null
-			? []
-			: matchRoles(
-					roles.map((role) => role.name),
-					query
-				)
 
 	const pickIcon = (author: string): string => {
 		if (author === 'human') return '🧑'
@@ -53,6 +42,10 @@ export function TeamChat({ project, roles }: ITeamChatProps) {
 		const role = roles.find((item) => item.name === author)
 		return role ? roleTitle(role) : author
 	}
+
+	const mentions = useMentions(
+		roles.map((role) => ({ name: role.name, icon: pickIcon(role.name), label: pickName(role.name) }))
+	)
 
 	return (
 		<Panel title={t('chat.title')} subtitle={t('chat.subtitle')}>
@@ -86,26 +79,10 @@ export function TeamChat({ project, roles }: ITeamChatProps) {
 			</p>
 
 			<div className={styles.compose}>
-				{suggestions.length > 0 && (
-					<div className={styles.mentions}>
-						{suggestions.map((name) => (
-							<button
-								type="button"
-								key={name}
-								className={styles.mention}
-								onClick={() => {
-									const next = applyMention(chat.draft, caret, name)
-									chat.setDraft(next.text)
-									setCaret(next.caret)
-								}}
-							>
-								<span className={styles.icon}>{pickIcon(name)}</span>
-								{pickName(name)}
-								{pickName(name) !== name && <span className={styles.model}>@{name}</span>}
-							</button>
-						))}
-					</div>
-				)}
+				<MentionSuggestions
+					agents={mentions.suggestions}
+					onPick={(name) => chat.setDraft(mentions.pick(name))}
+				/>
 				<Input.TextArea
 					className={styles.input}
 					rows={2}
@@ -113,7 +90,7 @@ export function TeamChat({ project, roles }: ITeamChatProps) {
 					placeholder={t('chat.placeholder')}
 					onChange={(e) => {
 						chat.setDraft(e.target.value)
-						setCaret(e.target.selectionStart ?? 0)
+						mentions.change(e.target.value, e.target.selectionStart ?? 0)
 					}}
 					onPressEnter={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
 						// Enter отправляет, Shift+Enter переносит строку — как в мессенджерах.
